@@ -45,7 +45,7 @@ class FileProc:
             for f in self.__files:
                 #print(f)
                 zf.write(self.__tmp_dir+f)
-                #os.remove(self.__tmp_dir+f)
+                os.remove(self.__tmp_dir+f)
 
     def __delete_tempdir(self):
         for dd in self.__dirs:
