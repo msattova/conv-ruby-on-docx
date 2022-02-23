@@ -10,6 +10,7 @@
 
 ## プログラムの実行に必要なもの
 
+* python : v3.10.1
 * beautifulsoup4 : v4.10.0
 * lxml : v4.8.0
 
