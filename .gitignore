@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# fit for my local env
+docx/
+resource/
+*.docx
+*.xml
