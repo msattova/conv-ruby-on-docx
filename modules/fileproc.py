@@ -1,6 +1,6 @@
 import os
 import zipfile
-
+import shutil
 from . import txt2docx as t2d
 
 
@@ -13,11 +13,18 @@ class FileProc:
         self.__output = output
         self.__tmp_dir = tmp_dir
         self.__files = list()
+        self.__dirs = set()
         self.__document = 'word/document.xml'
 
     def __extract(self):
         with zipfile.ZipFile(self.__template) as zf:
             self.__files = zf.namelist()
+            #print(self.__files)
+            for f in self.__files:
+                d = os.path.dirname(f)
+                self.__dirs.add(d)
+            self.__dirs.discard('')
+            #print(self.__dirs)
             zf.extractall(self.__tmp_dir)
 
     def __from_read_to_write(self):
@@ -38,16 +45,12 @@ class FileProc:
             for f in self.__files:
                 #print(f)
                 zf.write(self.__tmp_dir+f)
-                os.remove(self.__tmp_dir+f)
+                #os.remove(self.__tmp_dir+f)
 
     def __delete_tempdir(self):
-        delete_dirs = ['_rels',
-                       'customXml/_rels',
-                       'docProps',
-                       'word/_rels',
-                       'word/theme']
-        for dd in delete_dirs:
-            os.removedirs(self.__tmp_dir + dd)
+        for dd in self.__dirs:
+            if os.path.exists(dd):
+                shutil.rmtree(self.__tmp_dir + dd)
 
     def process(self):
         self.__extract()
