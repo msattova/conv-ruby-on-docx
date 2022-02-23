@@ -1,7 +1,7 @@
 
 
-
-ruby_template = (r"""
+ruby_template = (
+    r"""
 <w:r>
 <w:ruby>
 <w:rubyPr>
@@ -19,7 +19,7 @@ ruby_template = (r"""
 </w:rPr>
 <w:t>
 """,  # ここにルビ文字列（例：ふりがな）
-r"""
+    r"""
 </w:t>
 </w:r>
 </w:rt>
@@ -30,17 +30,17 @@ r"""
 </w:rPr>
 <w:t>
 """,  # ここにルビを振る文字列（例：振仮名）
-r"""
+    r"""
 </w:t>
 </w:r>
 </w:rubyBase>
 </w:ruby>
 </w:r>
 """,  # ルビ振り処理対象外の余った文字列を↓に（ここには何も入れない）
-r"""
+    r"""
 <w:r><w:rPr><w:rFonts w:hint="eastAsia"/></w:rPr><w:t>
 """,  # ルビ振り処理対象外の余った文字列をここに
-r"""</w:t></w:r>""")
+    r"""</w:t></w:r>""")
 
 # <w:r>タグで囲まれた文字列（<w:r>を含む）を取得するパターン
 get_wr = r'<w:r>(?:(?!<w:r>|</w:r>).)*</w:r>'
