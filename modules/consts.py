@@ -1,6 +1,16 @@
 
+import platform
 
-ruby_template = (
+
+def make_template():
+    pf = platform.system()
+    if pf == 'Windows':
+        font = 'ＭＳ 明朝'
+    elif pf == 'Darwin':
+        font = 'ヒラギノ明朝 ProN '
+    else: #Linux環境の場合はOSごとに標準でインストールされてるフォントが違うので要改善
+        font = 'Noto Serif CJK JP'
+    return (
     r"""
 <w:r>
 <w:ruby>
@@ -14,11 +24,11 @@ ruby_template = (
 <w:rt>
 <w:r w:rsidR="00E95970" w:rsidRPr="00E95970">
 <w:rPr>
-<w:rFonts w:ascii="ＭＳ 明朝" w:eastAsia="ＭＳ 明朝" w:hAnsi="ＭＳ 明朝" w:hint="eastAsia"/>
+<w:rFonts w:ascii="{0}" w:eastAsia="{0}" w:hAnsi="{0}" w:hint="eastAsia"/>
 <w:sz w:val="10"/>
 </w:rPr>
 <w:t>
-""",  # ここにルビ文字列（例：ふりがな）
+""".format(font),  # ここにルビ文字列（例：ふりがな）
     r"""
 </w:t>
 </w:r>

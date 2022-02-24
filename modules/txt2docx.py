@@ -33,12 +33,13 @@ def make_new_xml(code: str) -> str:
     outs = list()
     out = ''
     wrt = ''
+    rbtemplate = con.make_template()
     for i in range(l):
         out = ''
-        out = (con.ruby_template[0].strip() + ruby_text[i].strip()
-               + con.ruby_template[1].strip() + splited_text[i][0].strip()
-               + con.ruby_template[2].strip() + con.ruby_template[3].strip()
-               + splited_text[i][1].strip() + con.ruby_template[4].strip()
+        out = (rbtemplate[0].strip() + ruby_text[i].strip()
+               + rbtemplate[1].strip() + splited_text[i][0].strip()
+               + rbtemplate[2].strip() + rbtemplate[3].strip()
+               + splited_text[i][1].strip() + rbtemplate[4].strip()
                )
         outs.append(out)
 
