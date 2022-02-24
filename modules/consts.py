@@ -13,46 +13,37 @@ def make_template():
     else: #その他の結果が出た場合
         font = 'Noto Serif CJK JP'
     return (
-    r"""
-<w:r>
-<w:ruby>
-<w:rubyPr>
-<w:rubyAlign w:val="distributeSpace"/>
-<w:hps w:val="10"/>
-<w:hpsRaise w:val="18"/>
-<w:hpsBaseText w:val="21"/>
-<w:lid w:val="ja-JP"/>
-</w:rubyPr>
-<w:rt>
-<w:r w:rsidR="00E95970" w:rsidRPr="00E95970">
-<w:rPr>
-<w:rFonts w:ascii="{0}" w:eastAsia="{0}" w:hAnsi="{0}" w:hint="eastAsia"/>
-<w:sz w:val="10"/>
-</w:rPr>
-<w:t>
-""".format(font),  # ここにルビ文字列（例：ふりがな）
-    r"""
-</w:t>
-</w:r>
-</w:rt>
-<w:rubyBase>
-<w:r w:rsidR="00E95970">
-<w:rPr>
-<w:rFonts w:hint="eastAsia"/>
-</w:rPr>
-<w:t>
-""",  # ここにルビを振る文字列（例：振仮名）
-    r"""
-</w:t>
-</w:r>
-</w:rubyBase>
-</w:ruby>
-</w:r>
-""",  # ルビ振り処理対象外の余った文字列を↓に（ここには何も入れない）
-    r"""
-<w:r><w:rPr><w:rFonts w:hint="eastAsia"/></w:rPr><w:t>
-""",  # ルビ振り処理対象外の余った文字列をここに
-    r"""</w:t></w:r>""")
+    (r'<w:r>', r'<w:ruby>', r'<w:rubyPr>',
+    r'<w:rubyAlign w:val="distributeSpace"/>',
+    r'<w:hps w:val="10"/>',
+    r'<w:hpsRaise w:val="18"/>',
+    r'<w:hpsBaseText w:val="21"/>',
+    r'<w:lid w:val="ja-JP"/>',
+    r'</w:rubyPr>',
+    r'<w:rt>',
+    r'<w:r w:rsidR="00E95970" w:rsidRPr="00E95970">',
+    r'<w:rPr>',
+    rf'<w:rFonts w:ascii="{font}" w:eastAsia="{font}" w:hAnsi="{font}" w:hint="eastAsia"/>',
+    r'<w:sz w:val="10"/>',
+    r'</w:rPr>',
+    r'<w:t>'),
+    # ここにルビ文字列（例：ふりがな）
+    (r'</w:t>',
+    r'</w:r>',
+    r'</w:rt>',
+    r'<w:rubyBase>',
+    r'<w:r w:rsidR="00E95970">',
+    r'<w:rPr>',
+    r'<w:rFonts w:hint="eastAsia"/>',
+    r'</w:rPr>',
+    r'<w:t>'),
+    # ここにルビを振る文字列（例：振仮名）
+    (r'</w:t>', r'</w:r>', r'</w:rubyBase>',
+    r'</w:ruby>', r'</w:r>', r'<w:r><w:rPr>',
+    r'<w:rFonts w:hint="eastAsia"/>',
+    r'</w:rPr><w:t>'),
+    # ルビ振り処理対象外の余った文字列をここに
+    (r'</w:t>', r'</w:r>'))
 
 # <w:r>タグで囲まれた文字列（<w:r>を含む）を取得するパターン
 get_wr = r'<w:r>(?:(?!<w:r>|</w:r>).)*</w:r>'
