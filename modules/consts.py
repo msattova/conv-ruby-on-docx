@@ -8,7 +8,9 @@ def make_template():
         font = 'ＭＳ 明朝'
     elif pf == 'Darwin':
         font = 'ヒラギノ明朝 ProN '
-    else: #Linux環境の場合はOSごとに標準でインストールされてるフォントが違うので要改善
+    elif pf == 'Linux': #Linux環境の場合はOSごとに標準でインストールされてるフォントが違うので要改善
+        font = 'Noto Serif CJK JP'
+    else: #その他の結果が出た場合
         font = 'Noto Serif CJK JP'
     return (
     r"""
