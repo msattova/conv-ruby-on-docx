@@ -32,10 +32,7 @@ def make_new_xml(code: str) -> str:
     rbtemplate = con.make_template()
     for i in range(len(ruby_text)):
         out = ''
-        out = (''.join(rbtemplate[0]) + ruby_text[i].strip()
-               + ''.join(rbtemplate[1]) + splited_text[i][0].strip()
-               + ''.join(rbtemplate[2]) + splited_text[i][1].strip()
-               + ''.join(rbtemplate[3]))
+        out = con.make_out(rbtemplate, ruby_text[i], splited_text[i][0], splited_text[i][1])
         outs.append(out)
 
     iouts = iter(outs)
@@ -43,7 +40,7 @@ def make_new_xml(code: str) -> str:
     soup = bs4(code, 'xml')
     sep_char = '!@sep$@'
     separated = iter(soup.get_text(sep_char).split(sep_char))
-    print(soup.get_text(sep_char).split(sep_char))
+    #print(soup.get_text(sep_char).split(sep_char))
     ps = [i.lstrip() for i in soup.prettify().splitlines()]
 
     # ルビ振り置換前処理
@@ -68,12 +65,12 @@ def make_new_xml(code: str) -> str:
         # タグじゃなければ、その行をseparatedで置換
         # 元から"<tag>"のような文字列が含まれていると正しく処理されない
         if re.match(con.tag_reg, x.strip()) is None:
-            print(i, x)
+            #print(i, x)
             ps[i] = next(separated)
-            print(i, ps[i])
+            #print(i, ps[i])
             #print(re.match(con.tag_reg, x.strip()))
 
-    print(len(in_ruby), len(start_wr), len(end_wr))
+    #print(len(in_ruby), len(start_wr), len(end_wr))
     # ルビ振り置換
     rubysets = iter(zip(in_ruby, start_wr, end_wr))
     tmp = list()
@@ -82,7 +79,7 @@ def make_new_xml(code: str) -> str:
             continue
         else:
             tmp = list()
-            start = int(rs[1])
+            start = rs[1]
             _, _, end2 = next(rubysets)
             tmp.append(str(next(iouts)))  # 要素数1のリストを作成するための措置
             #print(tmp)
