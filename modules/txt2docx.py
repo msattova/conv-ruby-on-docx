@@ -75,7 +75,6 @@ def make_new_xml(code: str) -> str:
         else:
             tmp = list()
             start = int(rs[1])
-            end = int(rs[2])+1
             _, _, end2 = next(rubysets)
             tmp.append(str(next(iouts)))  # 要素数1のリストを作成するための措置
             # print(tmp)
