@@ -1,5 +1,6 @@
 
 import platform
+import regex
 from typing import Iterable, Iterator
 
 def make_template()->tuple:
@@ -39,24 +40,57 @@ def make_template()->tuple:
          r'<w:t>'),
         # ここにルビを振る文字列（例：振仮名）
         (r'</w:t>', r'</w:r>', r'</w:rubyBase>',
-         r'</w:ruby>', r'</w:r>', r'<w:r><w:rPr>',
+         r'</w:ruby>', r'</w:r>'),#ルビ関連のタグここまで
+        (r'<w:r><w:rPr>',
          r'<w:rFonts w:hint="eastAsia"/>',
          r'</w:rPr><w:t>'),
         # ルビ振り処理対象外の余った文字列をここに
         (r'</w:t>', r'</w:r>')))
 
+def make_rubyset(template:tuple[str], furigana:str, kanji:str):
+    #print('furigana: ', furigana)
+    #print('kanji: ', kanji)
+    return template[0]+furigana+template[1]+kanji+template[2]
 
-def make_out(template:tuple[str], furigana: str, kanji: str, amari: str) -> str:
-    return ''.join((template[0], furigana,
-                        template[1], kanji,
-                        template[2], amari,
-                        template[3]))
+def make_text(template:tuple[str], text:str):
+    return template[3]+text+template[4]
+
+#
+# 猫《ねこ》の猿《さる》蟹《かに》ごっこには微塵も、興味《きょうみ》が湧《わ》かない
+# ruby_kanji [[猫, ねこ], [猿, さる], [蟹, かに], [興味, きょうみ], [湧、 わ]]
+# basetext [<rbt_0>, の, <rbt_1>, <rbt_2>, ごっこには微塵も, <rbt_3>, が, <rbt_4>, かない]
+# 1. get_ruby_and_kanjiでもとの文字列からルビ対象箇所を<rbt_n>で置換して区切り文字を挿入。それ以外の場所はそのまま
+# 2. 区切り文字でbasetextをsplit。
+# 3. <rbt_n>のnはruby_kanjiの対応する位置の情報を保持
+# そんなことしなくてもn番目の<rbt>ならruby_kanji[n]に対応、とすれば良い
+# b&r ([yomi, kanji], [text1, rbt, text2], [False, True, False])
+def make_out(template:tuple[str], base_ruby:tuple) -> list[str]:
+    out_list = list()
+    for br in base_ruby:
+        inner = list()
+        ir = iter(br[0])
+        for e in br[1]:
+            #print('e', e)
+            if e == f"#rbt!":
+                inner.append(make_rubyset(template, furigana=next(ir), kanji=next(ir)))
+            else:
+                inner.append(make_text(template, text=e))
+        out_list.append(''.join(inner))
+        #print(f'inner, {inner}')
+    #print(out_list)
+    return out_list
+
 
 # <w:r>タグで囲まれた文字列（<w:r>を含む）を取得するパターン
 get_wr = r'<w:r>(?:(?!<w:r>|</w:r>).)*</w:r>'
 # 《》内の文字列取得用パターン
 get_ruby = r'(?<=《).*?(?=》)'
 # 《》の前後で文字列分割
-split_reg = r'《.*?》'
+split_reg = r'《[^《》]*?》'
 # タグにマッチするパターン
 tag_reg = r'<[^<>]*>'
+# 漢字《かんじ》にマッチするパターン
+get_kanji_and_ruby = regex.compile(r'[\p{Script=Han}\u30F5]+《[^《》]*?》')
+# 漢字にだけマッチするパターン
+get_kanji = regex.compile(r'[\p{Script=Han}\u30F5]+')
+
