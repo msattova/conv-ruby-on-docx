@@ -55,15 +55,7 @@ def make_rubyset(template:tuple[str], furigana:str, kanji:str):
 def make_text(template:tuple[str], text:str):
     return template[3]+text+template[4]
 
-#
-# 猫《ねこ》の猿《さる》蟹《かに》ごっこには微塵も、興味《きょうみ》が湧《わ》かない
-# ruby_kanji [[猫, ねこ], [猿, さる], [蟹, かに], [興味, きょうみ], [湧、 わ]]
-# basetext [<rbt_0>, の, <rbt_1>, <rbt_2>, ごっこには微塵も, <rbt_3>, が, <rbt_4>, かない]
-# 1. get_ruby_and_kanjiでもとの文字列からルビ対象箇所を<rbt_n>で置換して区切り文字を挿入。それ以外の場所はそのまま
-# 2. 区切り文字でbasetextをsplit。
-# 3. <rbt_n>のnはruby_kanjiの対応する位置の情報を保持
-# そんなことしなくてもn番目の<rbt>ならruby_kanji[n]に対応、とすれば良い
-# b&r ([yomi, kanji], [text1, rbt, text2], [False, True, False])
+# 置換後文字列を出力
 def make_out(template:tuple[str], base_ruby:tuple) -> list[str]:
     out_list = list()
     for br in base_ruby:
@@ -82,13 +74,11 @@ def make_out(template:tuple[str], base_ruby:tuple) -> list[str]:
 
 
 # <w:r>タグで囲まれた文字列（<w:r>を含む）を取得するパターン
-get_wr = r'<w:r>(?:(?!<w:r>|</w:r>).)*</w:r>'
+get_wr = r'<w:r>(?:(?!<w:r>|</w:r>).)*</w:r>' #make_new_xml内で1回しか利用されないのでコンパイルしない
 # 《》内の文字列取得用パターン
-get_ruby = r'(?<=《).*?(?=》)'
-# 《》の前後で文字列分割
-split_reg = r'《[^《》]*?》'
+get_ruby = regex.compile(r'(?<=《).*?(?=》)')
 # タグにマッチするパターン
-tag_reg = r'<[^<>]*>'
+tag_reg = regex.compile(r'<[^<>]*>')
 # 漢字《かんじ》にマッチするパターン
 get_kanji_and_ruby = regex.compile(r'[\p{Script=Han}\u30F5]+《[^《》]*?》')
 # 漢字にだけマッチするパターン
