@@ -4,8 +4,8 @@ import modules.fileproc as fpc
 
 cmd = arg.CmdArg()
 
-template = cmd.args.filename
-input = ''
+input = cmd.args.inputfile
+template = ''
 output = cmd.args.output
 
 p = fpc.FileProc(template, input, output)

@@ -28,31 +28,31 @@ def make_replstr_list(in_wr_strs: Iterator) -> list:
     INTO_SYMBOL = con.SPLIT_SYMBOL + con.REPL_SYMBOL + con.SPLIT_SYMBOL
     for s in replace_target:
         ruby_kanji.append(con.REG_KANJI_AND_RUBY.findall(s))
-        # タグを消去
-        elaced = con.REG_TAG.sub('', s).strip()
-        tmp_list = [i for i in
-                    con.REG_KANJI_AND_RUBY.sub(
-                        INTO_SYMBOL, elaced).split(con.SPLIT_SYMBOL)
-                    if i != '']
-        nonruby_text.append(tmp_list)
-    for rklist in ruby_kanji:
-        rtxt = list()
-        for part in rklist:
-            rtxt += con.REG_RUBY.findall(part)
-            rtxt += con.REG_KANJI.findall(part)
-        ruby_text.append(rtxt)
+        elaced = con.REG_TAG.sub('', s).strip()  # タグを消去
+        tmp= [i for i in
+                con.REG_KANJI_AND_RUBY.sub(
+                    INTO_SYMBOL, elaced).split(con.SPLIT_SYMBOL)
+                if i != '']
+        nonruby_text.append(tmp)
+    for rk in ruby_kanji:
+        tmp = list()
+        for part in rk:
+            tmp += con.REG_RUBY.findall(part)
+            tmp += con.REG_KANJI.findall(part)
+        ruby_text.append(tmp)
     rbtemplate = con.make_template()
     base_and_ruby = tuple(zip(ruby_text, nonruby_text))
     return con.make_out(rbtemplate, base_and_ruby)
 
 
-def make_reflist(ps, separated):
+def make_reflist(each_lines:list[str],
+                holded_text:Iterator) -> tuple[Iterable, list[str]]:
     """ ルビ振り処理に参照するオブジェクトを生成"""
     in_wr_flag = False
     start_wr = list()
     end_wr = list()
     in_ruby: list[RubyType] = list()
-    for i, x in enumerate(ps):
+    for i, x in enumerate(each_lines):
         if r"<w:r>" == x.strip():
             in_wr_flag = True
             start_wr.append(i)
@@ -69,31 +69,34 @@ def make_reflist(ps, separated):
         # タグじゃなければ、その行をseparatedで置換
         # 元から"<tag>"のような文字列が含まれていると正しく処理されない
         if con.REG_TAG.match(x.strip()) is None:
-            ps[i] = next(separated)
+            each_lines[i] = next(holded_text)
         if r"|" == x.strip():
             in_ruby.append(RubyType.HASPIPE)
         elif in_wr_flag and con.REG_KANJI_AND_RUBY.search(x.strip()):
             in_ruby.append(RubyType.NONPIPE)
-    return zip(in_ruby, start_wr, end_wr)
+    return (zip(in_ruby, start_wr, end_wr), each_lines)
 
 
-def repl_ruby(rubysets: Iterable, iouts, ps):
+def repl_ruby(rubysets: Iterable,
+                repl_strs: Iterator,
+                each_lines: list[str]) -> list[str]:
     """ルビ振り置換"""
+    replaced_lines = each_lines
     for rs in rubysets:
         if rs[0] is RubyType.NOTHING:
             continue
         else:
             tmp = list()
             start = rs[1]
-            t = str(next(iouts))
+            t = next(repl_strs)
             tmp.append(t)  # 要素数1のリストを作成するための措置
             if rs[0] is RubyType.HASPIPE:
                 # `|`（パイプ）の次の文字列がルビ振り対象文字列なのでnext()を使う
                 _, _, end = next(rubysets)
             elif rs[0] is RubyType.NONPIPE:
                 end = rs[2]
-            ps[start:(end+1)] = (['']*(end-start)+tmp)
-    return ps
+            replaced_lines[start:(end+1)] = (['']*(end-start)+tmp)
+    return replaced_lines
 
 
 def make_new_xml(code: str) -> str:
@@ -102,13 +105,13 @@ def make_new_xml(code: str) -> str:
     in_wr_str = iter(re.findall(con.REG_WR, nc))
 
     soup = bs4(code, 'xml')
-    separated = iter(soup.get_text(con.SEPARATE_SYMBOL)
-                         .split(con.SEPARATE_SYMBOL))  # 元のテキストデータをリストにして保持
-    ps = [i.lstrip() for i in soup.prettify().splitlines()]
+    holded_text = iter(soup.get_text(con.SEPARATE_SYMBOL)
+                         .split(con.SEPARATE_SYMBOL))  # 元のテキストデータを分割して保持
+    each_lines = [i.lstrip() for i in soup.prettify().splitlines()] # xmlを一行づつ分割
 
-    iouts = iter(make_replstr_list(in_wr_str))
-    rubysets = make_reflist(ps, separated)
-    ps = repl_ruby(rubysets, iouts, ps)
-    wrt = ''.join(ps)
+    repl_strs = iter(make_replstr_list(in_wr_str))
+    rubysets, each_lines = make_reflist(each_lines, holded_text)
+    replaced_lines = repl_ruby(rubysets, repl_strs, each_lines)
+    wrt = ''.join(replaced_lines)
 
     return wrt
