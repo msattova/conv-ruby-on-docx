@@ -1,58 +1,53 @@
 
 import re
 from enum import Enum, auto
+from typing import Iterable, Iterator
 from bs4 import BeautifulSoup as bs4
 
 from . import consts as con
 
+
 class RubyType(Enum):
-    NOTHING = auto() #ルビも傍点も振らない
-    YOUPIPE = auto() #パイプ有りルビ(zh:有パイプ)
-    NONPIPE = auto() #パイプなしルビ
-    BOUTEN  = auto() #傍点
+    NOTHING = auto()  # ルビも傍点も振らない
+    HASPIPE = auto()  # パイプ有りルビ
+    NONPIPE = auto()  # パイプなしルビ
+    BOUTEN = auto()   # 傍点
 
-def make_new_xml(code: str) -> str:
 
-    nc = re.sub(r'\s|\n', '', code)
-    iwr = iter(re.findall(con.get_wr, nc))
-
-    # 置き換え対象
+def make_replstr_list(in_wr_strs: Iterator) -> list:
+    """置き換え対象文字列リストの生成"""
     replace_target = list()
-
-    for s in iwr:
-        if re.search(r'\|', str(s)):
-            replace_target.append(str(next(iwr)))
-        elif con.get_kanji_and_ruby.search(str(s)):
-            replace_target.append(str(s))
+    for s in in_wr_strs:
+        if con.REG_PIPE.search(s):
+            replace_target.append(next(in_wr_strs))
+        elif con.REG_KANJI_AND_RUBY.search(s):
+            replace_target.append(s)
     ruby_kanji = list()
     ruby_text = list()
     nonruby_text = list()
+    INTO_SYMBOL = con.SPLIT_SYMBOL + con.REPL_SYMBOL + con.SPLIT_SYMBOL
     for s in replace_target:
-        tmp_list = list()
-        ruby_kanji.append(con.get_kanji_and_ruby.findall(s))
+        ruby_kanji.append(con.REG_KANJI_AND_RUBY.findall(s))
         # タグを消去
-        elaced = con.tag_reg.sub('', s).strip()
-        tmp_list = [ i for i in con.get_kanji_and_ruby.sub('~#rbt!~', elaced).split('~') if i != '']
+        elaced = con.REG_TAG.sub('', s).strip()
+        tmp_list = [i for i in
+                    con.REG_KANJI_AND_RUBY.sub(
+                        INTO_SYMBOL, elaced).split(con.SPLIT_SYMBOL)
+                    if i != '']
         nonruby_text.append(tmp_list)
     for rklist in ruby_kanji:
         rtxt = list()
         for part in rklist:
-            rtxt += con.get_ruby.findall(part)
-            rtxt += con.get_kanji.findall(part)
+            rtxt += con.REG_RUBY.findall(part)
+            rtxt += con.REG_KANJI.findall(part)
         ruby_text.append(rtxt)
-    outs = list()
-    wrt = ''
     rbtemplate = con.make_template()
     base_and_ruby = tuple(zip(ruby_text, nonruby_text))
-    outs = con.make_out(rbtemplate, base_and_ruby )
-    iouts = iter(outs)
+    return con.make_out(rbtemplate, base_and_ruby)
 
-    soup = bs4(code, 'xml')
-    sep_char = '!@sep$@'
-    separated = iter(soup.get_text(sep_char).split(sep_char))
-    ps = [i.lstrip() for i in soup.prettify().splitlines()]
 
-    # ルビ振り置換前処理
+def make_reflist(ps, separated):
+    """ ルビ振り処理に参照するオブジェクトを生成"""
     in_wr_flag = False
     start_wr = list()
     end_wr = list()
@@ -65,23 +60,25 @@ def make_new_xml(code: str) -> str:
         elif r"</w:r>" == x.strip():
             in_wr_flag = False
             end_wr.append(i)
-            if len(end_wr) != len(in_ruby): #w:rタグが終わるまでin_rubyに要素がappendされてなければ
+            # w:rタグが終わるまでin_rubyに要素がappendされてなければRubyType.NOTHINGを追加
+            if len(end_wr) != len(in_ruby):
                 in_ruby.append(RubyType.NOTHING)
             continue
         if not in_wr_flag:
             continue
         # タグじゃなければ、その行をseparatedで置換
         # 元から"<tag>"のような文字列が含まれていると正しく処理されない
-        if con.tag_reg.match(x.strip()) is None:
+        if con.REG_TAG.match(x.strip()) is None:
             ps[i] = next(separated)
         if r"|" == x.strip():
-            in_ruby.append(RubyType.YOUPIPE)
-        elif in_wr_flag and con.get_kanji_and_ruby.search(x.strip()):
+            in_ruby.append(RubyType.HASPIPE)
+        elif in_wr_flag and con.REG_KANJI_AND_RUBY.search(x.strip()):
             in_ruby.append(RubyType.NONPIPE)
+    return zip(in_ruby, start_wr, end_wr)
 
-    # ルビ振り置換
-    rubysets = iter(zip(in_ruby, start_wr, end_wr))
-    tmp = list()
+
+def repl_ruby(rubysets: Iterable, iouts, ps):
+    """ルビ振り置換"""
     for rs in rubysets:
         if rs[0] is RubyType.NOTHING:
             continue
@@ -89,17 +86,29 @@ def make_new_xml(code: str) -> str:
             tmp = list()
             start = rs[1]
             t = str(next(iouts))
-            if rs[0] is RubyType.YOUPIPE:
-                _, _, end = next(rubysets)#`|`（パイプ）の次の文字列がルビ振り対象文字列なので
+            tmp.append(t)  # 要素数1のリストを作成するための措置
+            if rs[0] is RubyType.HASPIPE:
+                # `|`（パイプ）の次の文字列がルビ振り対象文字列なのでnext()を使う
+                _, _, end = next(rubysets)
             elif rs[0] is RubyType.NONPIPE:
                 end = rs[2]
-            tmp.append(t)  # 要素数1のリストを作成するための措置
             ps[start:(end+1)] = (['']*(end-start)+tmp)
+    return ps
 
-    for i in ps:
-        if i == '':
-            continue
-        else:
-            wrt += i
+
+def make_new_xml(code: str) -> str:
+    """out.docx内のdocument.xmlに書き込む文字列生成"""
+    nc = re.sub(r'\s|\n', '', code)
+    in_wr_str = iter(re.findall(con.REG_WR, nc))
+
+    soup = bs4(code, 'xml')
+    separated = iter(soup.get_text(con.SEPARATE_SYMBOL)
+                         .split(con.SEPARATE_SYMBOL))  # 元のテキストデータをリストにして保持
+    ps = [i.lstrip() for i in soup.prettify().splitlines()]
+
+    iouts = iter(make_replstr_list(in_wr_str))
+    rubysets = make_reflist(ps, separated)
+    ps = repl_ruby(rubysets, iouts, ps)
+    wrt = ''.join(ps)
 
     return wrt
