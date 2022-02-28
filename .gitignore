@@ -133,3 +133,8 @@ docx/
 resource/
 *.docx
 *.xml
+
+Scripts/
+pyvenv.cfg
+Include/
+archive/

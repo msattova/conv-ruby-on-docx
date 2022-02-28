@@ -10,15 +10,21 @@
 
 ## プログラムの実行に必要なもの
 
+Releasesからexeファイルをダウンロードする場合、**これらのインストールは不要**です。
+
 * python : v3.10.1
 * beautifulsoup4 : v4.10.0
 * lxml : v4.8.0
+* PySide2 : 5.15.2.1
+* regex : 2022.1.18
+* shiboken2 : 5.15.2.1
+* soupsieve : 2.3.1
 
 （バージョンは製作者の環境のもの。このバージョンでないといけないというわけではありませんが、現在、他のバージョンで動作するかは確認できていません）
 
 requirements.txtをダウンロードして`pip install -r requirements.txt`コマンドを実行すれば必要なパッケージを一括でインストールできます。
 
-## 使い方
+## 使い方(CUI)
 
 `py main.py input.docx`
 
@@ -39,5 +45,5 @@ requirements.txtをダウンロードして`pip install -r requirements.txt`コ�
 * ~~`漢字《かんじ》`記法への対応（issue #6）~~
 * `《《傍点を振る》》`記法への対応
 * 小説の文章が書かれたtxtファイルとテンプレートdocxファイルを入力として受け取ってdocxファイルを出力するような使い方もできるようにする（pandocみたいな感じ）
-* GUI化する
-* exeファイルにする
+* ~~GUI化する~~
+* ~~exeファイルにする~~
