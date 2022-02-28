@@ -24,6 +24,14 @@ Releasesからexeファイルをダウンロードする場合、**これらの�
 
 requirements.txtをダウンロードして`pip install -r requirements.txt`コマンドを実行すれば必要なパッケージを一括でインストールできます。
 
+## 使い方(GUI)
+
+`py gui.py`を実行してください。
+
+### exeファイルを利用する場合
+
+exeファイルをダブルクリックしてください。
+
 ## 使い方(CUI)
 
 `py main.py input.docx`
