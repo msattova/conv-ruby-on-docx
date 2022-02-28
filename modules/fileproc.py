@@ -57,8 +57,10 @@ class FileProc:
             if os.path.exists(dd):
                 shutil.rmtree(extract_dir + dd)
 
-    def process(self):
+    def process(self, output_place='.'):
         self._files, self._dirs = self._extract(self._input, self._extract_dir)
         self._from_read_to_write(self._extract_dir, self._document)
         self._make_docx(self._output, self._extract_dir, self._files)
         self._delete_tempdir(self._extract_dir, self._dirs)
+        new_file = os.path.join(os.getcwd(), self._output)
+        shutil.move(new_file, output_place)
