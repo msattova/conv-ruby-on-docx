@@ -85,10 +85,10 @@ class MainWindow(QMainWindow):
     def run(self):
         input = self.input_path.text()
         template = ''
-        output = 'out.docx'
-        newplace = self.save_file()
+        #output = 'out.docx'
+        output = self.save_file()
         p = fpc.FileProc(template, input, output)
-        p.process(newplace)
+        p.process()
         QMessageBox.information(None, "成功", "実行に成功しました！")
 
 

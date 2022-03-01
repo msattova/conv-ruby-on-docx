@@ -1,7 +1,7 @@
 
 import platform
 import regex
-from typing import Iterable
+from typing import Iterable, Final
 
 REPL_SYMBOL: str = '#rbt!'   # 置換処理時、ルビ箇所に置き換える記号文字列
 SPLIT_SYMBOL: str = '~'      # 置換処理時、文字列を分割するための文字
@@ -84,7 +84,7 @@ def make_out(template: tuple[str, str, str, str, str],
 
 # <w:r>タグで囲まれた文字列（<w:r>を含む）を取得するパターン
 # make_new_xml内で1回しか利用されないのでコンパイルしない
-REG_WR = r'<w:r>(?:(?!<w:r>|</w:r>).)*</w:r>'
+REG_WR: Final[str] = r'<w:r>(?:(?!<w:r>|</w:r>).)*</w:r>'
 # 《》内の文字列取得用パターン
 REG_RUBY = regex.compile(r'(?<=《).*?(?=》)')
 # タグにマッチするパターン

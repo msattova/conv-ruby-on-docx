@@ -1,66 +1,62 @@
 import os
+import glob
 import zipfile
 import shutil
+from dataclasses import dataclass
 from . import txt2docx as t2d
 
-
+@dataclass
 class FileProc:
 
-    def __init__(self, template: str,
-                 input: str, output: str, extract_dir: str = './'):
-        self._template = template
-        self._input = input
-        self._output = output
-        self._extract_dir = extract_dir
-        self._files = list()
-        self._dirs = set()
-        self._document = 'word/document.xml'
+    template: str
+    input: str
+    output: str
+
+    def __post_init__(self):
+        self.extract_dir = os.path.dirname(self.output)
 
     def _extract(self, input: str,
-                 extract_dir: str) -> tuple[list[str], set[str]]:
+                 extract_dir: str) -> tuple[list[str], set[str], str]:
         with zipfile.ZipFile(input) as zf:
             files = zf.namelist()
             dirs = set()
+            docxml: str
             # print(self.__files)
             for f in files:
                 d = os.path.dirname(f)
                 dirs.add(d)
             dirs.discard('')
             # print(self.__dirs)
+            os.chdir(extract_dir)
             zf.extractall(extract_dir)
-        return (files, dirs)
+            docxml = os.path.join(extract_dir, glob.glob('word/document*.xml')[0])
+        return (files, dirs, docxml)
 
-    def _from_read_to_write(self,
-                            extract_dir: str,
-                            document: str):
-        with open(extract_dir+document,
-                  mode='r', encoding='utf-8') as f:
+    def _from_read_to_write(self, document: str):
+        with open(document, mode='r', encoding='utf-8') as f:
             s = f.read()
 
         new_code = t2d.make_new_xml(s)
 
-        with open(extract_dir+document,
-                  mode='w', encoding='utf-8') as f:
+        with open(document, mode='w', encoding='utf-8') as f:
             f.write(new_code)
 
-    def _make_docx(self, output, extract_dir, file_list):
+    def _make_docx(self, output, file_list):
         with zipfile.ZipFile(output, 'w',
                              compression=zipfile.ZIP_STORED,
                              compresslevel=0) as zf:
             for f in file_list:
-                # print(f)
-                zf.write(extract_dir+f)
-                os.remove(extract_dir+f)
+                filepath = os.path.join('.', f)
+                zf.write(filepath)
+                os.remove(filepath)
 
     def _delete_tempdir(self, extract_dir, dirs):
         for dd in dirs:
             if os.path.exists(dd):
-                shutil.rmtree(extract_dir + dd)
+                shutil.rmtree(os.path.join(extract_dir,dd))
 
-    def process(self, output_place='.'):
-        self._files, self._dirs = self._extract(self._input, self._extract_dir)
-        self._from_read_to_write(self._extract_dir, self._document)
-        self._make_docx(self._output, self._extract_dir, self._files)
-        self._delete_tempdir(self._extract_dir, self._dirs)
-        new_file = os.path.join(os.getcwd(), self._output)
-        shutil.move(new_file, output_place)
+    def process(self):
+        self.files, self.dirs, self.docxml = self._extract(self.input, self.extract_dir)
+        self._from_read_to_write(self.docxml)
+        self._make_docx(self.output, self.files)
+        self._delete_tempdir(self.extract_dir, self.dirs)
