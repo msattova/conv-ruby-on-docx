@@ -10,4 +10,8 @@ class CmdArg:
                                  nargs='?', type=str,
                                  default='out.docx',
                                  help='出力ファイル名')
+        self.parser.add_argument('-f', '--font',
+                                 nargs='?', type=str,
+                                 default='',
+                                 help='出力ファイル名')
         self.args = self.parser.parse_args()

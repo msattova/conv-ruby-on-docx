@@ -14,7 +14,7 @@ class RubyType(Enum):
     BOUTEN = auto()   # 傍点
 
 
-def make_replstr_list(in_wr_strs: Iterator) -> list:
+def make_replstr_list(ruby_font: str, in_wr_strs: Iterator) -> list:
     """置き換え対象文字列リストの生成"""
     replace_target = list()
     for s in in_wr_strs:
@@ -40,7 +40,7 @@ def make_replstr_list(in_wr_strs: Iterator) -> list:
             tmp += con.REG_RUBY.findall(part)
             tmp += con.REG_KANJI.findall(part)
         ruby_text.append(tmp)
-    rbtemplate = con.make_template()
+    rbtemplate = con.make_template(ruby_font)
     base_and_ruby = tuple(zip(ruby_text, nonruby_text))
     return con.make_out(rbtemplate, base_and_ruby)
 
@@ -99,7 +99,7 @@ def repl_ruby(rubysets: Iterable,
     return replaced_lines
 
 
-def make_new_xml(code: str) -> str:
+def make_new_xml(ruby_font: str, code: str) -> str:
     """out.docx内のdocument.xmlに書き込む文字列生成"""
     nc = re.sub(r'\s|\n', '', code)
     in_wr_str = iter(re.findall(con.REG_WR, nc))
@@ -109,7 +109,7 @@ def make_new_xml(code: str) -> str:
                          .split(con.SEPARATE_SYMBOL))  # 元のテキストデータを分割して保持
     each_lines = [i.lstrip() for i in soup.prettify().splitlines()] # xmlを一行づつ分割
 
-    repl_strs = iter(make_replstr_list(in_wr_str))
+    repl_strs = iter(make_replstr_list(ruby_font, in_wr_str))
     rubysets, each_lines = make_reflist(each_lines, holded_text)
     replaced_lines = repl_ruby(rubysets, repl_strs, each_lines)
     wrt = ''.join(replaced_lines)

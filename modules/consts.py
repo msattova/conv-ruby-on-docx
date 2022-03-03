@@ -8,16 +8,18 @@ SPLIT_SYMBOL: str = '~'      # 置換処理時、文字列を分割するため�
 SEPARATE_SYMBOL = '!@sep$@'  # 元のテキストをリストとして取得する際に利用する分割用文字列
 
 
-def make_template() -> tuple:
-    pf = platform.system()
-    if pf == 'Windows':
-        font = 'ＭＳ 明朝'
-    elif pf == 'Darwin':
-        font = 'ヒラギノ明朝 ProN '
-    elif pf == 'Linux':  # Linux環境の場合はOSごとに標準でインストールされてるフォントが違うので要改善
-        font = 'Noto Serif CJK JP'
-    else:  # その他の結果が出た場合
-        font = 'Noto Serif CJK JP'
+def make_template(font: str) -> tuple:
+    if font == '':
+        pf = platform.system()
+        if pf == 'Windows':
+            font = 'ＭＳ 明朝'
+        elif pf == 'Darwin':
+            font = 'ヒラギノ明朝 ProN '
+        elif pf == 'Linux':  # Linux環境の場合はOSごとに標準でインストールされてるフォントが違うので要改善
+            font = 'Noto Serif CJK JP'
+        else:  # その他の結果が出た場合
+            font = 'Noto Serif CJK JP'
+
     return tuple(''.join(s) for s in (
         (r'<w:r>', r'<w:ruby>', r'<w:rubyPr>',
          r'<w:rubyAlign w:val="distributeSpace"/>',

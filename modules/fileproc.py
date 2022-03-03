@@ -11,9 +11,12 @@ class FileProc:
     template: str
     input: str
     output: str
+    ruby_font: str
 
     def __post_init__(self):
         self.extract_dir = os.path.dirname(self.output)
+        if self.extract_dir == '':
+            self.extract_dir = '.'
 
     def _extract(self, input: str,
                  extract_dir: str) -> tuple[list[str], set[str], str]:
@@ -36,7 +39,7 @@ class FileProc:
         with open(document, mode='r', encoding='utf-8') as f:
             s = f.read()
 
-        new_code = t2d.make_new_xml(s)
+        new_code = t2d.make_new_xml(self.ruby_font, s)
 
         with open(document, mode='w', encoding='utf-8') as f:
             f.write(new_code)
