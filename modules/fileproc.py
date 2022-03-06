@@ -9,7 +9,7 @@ from . import txt2docx as t2d
 class FileProc:
 
     template: str
-    input: str
+    inputfile: str
     output: str
     ruby_font: str
 
@@ -59,7 +59,7 @@ class FileProc:
                 shutil.rmtree(os.path.join(extract_dir,dd))
 
     def process(self):
-        self.files, self.dirs, self.docxml = self._extract(self.input, self.extract_dir)
+        self.files, self.dirs, self.docxml = self._extract(self.inputfile, self.extract_dir)
         self._from_read_to_write(self.docxml)
         self._make_docx(self.output, self.files)
         self._delete_tempdir(self.extract_dir, self.dirs)

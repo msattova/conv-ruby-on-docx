@@ -13,5 +13,5 @@ class CmdArg:
         self.parser.add_argument('-f', '--font',
                                  nargs='?', type=str,
                                  default='',
-                                 help='出力ファイル名')
+                                 help='ルビのフォント')
         self.args = self.parser.parse_args()
