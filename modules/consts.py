@@ -19,7 +19,7 @@ def make_template(font: str) -> tuple:
             font = 'Noto Serif CJK JP'
         else:  # その他の結果が出た場合
             font = 'Noto Serif CJK JP'
-
+#<w:r ssssr></w:r>
     return tuple(''.join(s) for s in (
         (r'<w:r>', r'<w:ruby>', r'<w:rubyPr>',
          r'<w:rubyAlign w:val="distributeSpace"/>',
@@ -34,7 +34,7 @@ def make_template(font: str) -> tuple:
          rf'<w:rFonts w:ascii="{font}" w:eastAsia="{font}" w:hAnsi="{font}" w:hint="eastAsia"/>',
          r'<w:sz w:val="10"/>',
          r'</w:rPr>',
-         r'<w:t>'),
+         r'<w:t>'), # 0 close
         # ここにルビ文字列（例：ふりがな）
         (r'</w:t>',
          r'</w:r>',
@@ -44,15 +44,15 @@ def make_template(font: str) -> tuple:
          r'<w:rPr>',
          r'<w:rFonts w:hint="eastAsia"/>',
          r'</w:rPr>',
-         r'<w:t>'),
+         r'<w:t>'), # 1 close
         # ここにルビを振る文字列（例：振仮名）
         (r'</w:t>', r'</w:r>', r'</w:rubyBase>',
-         r'</w:ruby>', r'</w:r>'),  # ルビ関連のタグここまで
+         r'</w:ruby>', r'</w:r>'),  # ルビ関連のタグここまで # 2 close
         (r'<w:r><w:rPr>',
          r'<w:rFonts w:hint="eastAsia"/>',
-         r'</w:rPr><w:t>'),
+         r'</w:rPr><w:t>'), # 3 close
         # ルビ振り処理対象外の余った文字列をここに
-        (r'</w:t>', r'</w:r>')))
+        (r'</w:t>', r'</w:r>'))) # 4 close
 
 
 def make_rubyset(template: tuple[str, str, str, str, str],
@@ -81,16 +81,24 @@ def make_out(template: tuple[str, str, str, str, str],
             else:
                 inner.append(make_text(template, text=e))
         out_list.append(''.join(inner))
+    print(out_list)
     return out_list
 
 
 # <w:r>タグで囲まれた文字列（<w:r>を含む）を取得するパターン
 # make_new_xml内で1回しか利用されないのでコンパイルしない
-REG_WR: Final[str] = r'<w:r>(?:(?!<w:r>|</w:r>).)*</w:r>'
+REG_SURROUND_WR: Final[str] = r'<w:r(?:\s[^<>]+)?>(?:(?!<w:r>|</w:r>).)*</w:r>'
+REG_SURROUND_WR_WITH_ATTR: Final[str] = r'<w:r\s[^<>]+>(?:(?!<w:r>|</w:r>).)*</w:r>'
 # 《》内の文字列取得用パターン
 REG_RUBY = regex.compile(r'(?<=《).*?(?=》)')
-# タグにマッチするパターン
+# マッチさせたいタグ名を格納するタプル
+TAGS: Final[tuple] = ('w:r', 'w:t', '.+')
+# タグで囲まれた文字列にマッチするパターン
+REG_TAG_OPCL = { tag: regex.compile(r'<{tag}>(?:(?!<{tag}>|</{tag}>).)*</{tag}>') for tag in TAGS}
+# タグ単体（開始or終了）にマッチするパターン
 REG_TAG = regex.compile(r'<[^<>]*>')
+# w:rタグの開始or終了にマッチ
+REG_WR = regex.compile(r'</?w:r(\s[^<>]+)?>')
 # 漢字《かんじ》にマッチするパターン
 REG_KANJI_AND_RUBY = regex.compile(r'[\p{Script=Han}\u30F5]+《[^《》]*?》')
 # 漢字にだけマッチするパターン

@@ -2,25 +2,29 @@ import os
 import glob
 import zipfile
 import shutil
+from pathlib import Path
 from dataclasses import dataclass
 from . import txt2docx as t2d
+
 
 @dataclass
 class FileProc:
 
-    template: str
-    inputfile: str
-    output: str
+    template: Path
+    inputfile: Path
+    output: Path
     ruby_font: str
 
     def __post_init__(self):
-        self.extract_dir = os.path.dirname(self.output)
-        if self.extract_dir == '':
-            self.extract_dir = '.'
+        self.template = self.template.resolve()
+        self.inputfile = self.inputfile.resolve()
+        self.output = self.output.resolve()
 
-    def _extract(self, input: str,
-                 extract_dir: str) -> tuple[list[str], set[str], str]:
-        with zipfile.ZipFile(input) as zf:
+        self.extract_dir = self.output.parent
+
+    def _extract(self, inputfile: str,
+                 extract_dir: str) -> tuple[list[str], set[str], Path]:
+        with zipfile.ZipFile(inputfile) as zf:
             files = zf.namelist()
             dirs = set()
             docxml: str
@@ -32,7 +36,7 @@ class FileProc:
             # print(self.__dirs)
             os.chdir(extract_dir)
             zf.extractall(extract_dir)
-            docxml = os.path.join(extract_dir, glob.glob('word/document*.xml')[0])
+            docxml = tuple(Path(extract_dir).glob('word/document*.xml'))[0]
         return (files, dirs, docxml)
 
     def _from_read_to_write(self, document: str):
@@ -44,7 +48,7 @@ class FileProc:
         with open(document, mode='w', encoding='utf-8') as f:
             f.write(new_code)
 
-    def _make_docx(self, output, file_list):
+    def _make_docx(self, output: str, file_list: list[str]):
         with zipfile.ZipFile(output, 'w',
                              compression=zipfile.ZIP_STORED,
                              compresslevel=0) as zf:
@@ -53,13 +57,15 @@ class FileProc:
                 zf.write(filepath)
                 os.remove(filepath)
 
-    def _delete_tempdir(self, extract_dir, dirs):
+    def _delete_tempdir(self, extract_dir: str, dirs: set[str]):
         for dd in dirs:
             if os.path.exists(dd):
-                shutil.rmtree(os.path.join(extract_dir,dd))
+                shutil.rmtree(os.path.join(extract_dir, dd))
 
     def process(self):
-        self.files, self.dirs, self.docxml = self._extract(self.inputfile, self.extract_dir)
-        self._from_read_to_write(self.docxml)
-        self._make_docx(self.output, self.files)
-        self._delete_tempdir(self.extract_dir, self.dirs)
+        self.files, self.dirs, self.docxml = self._extract(
+                self.inputfile.as_posix(),
+                self.extract_dir.as_posix())
+        self._from_read_to_write(self.docxml.as_posix())
+        self._make_docx(self.output.as_posix(), self.files)
+        self._delete_tempdir(self.extract_dir.as_posix(), self.dirs)
