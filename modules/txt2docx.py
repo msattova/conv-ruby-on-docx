@@ -79,7 +79,7 @@ def convert_basecode(basecode: list[str]) -> list[str]:
                     break
                 if con.REG_TAG.match(bc) is not None:
                     basecode[j+ind] = ''
-    return [i for i in basecode if i!=""]
+    return [i for i in basecode if i!= ""]
 
 
 def make_replstr_list(ruby_font: str, in_wr_strs: Iterator) -> list:
