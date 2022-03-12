@@ -81,7 +81,7 @@ def make_out(template: tuple[str, str, str, str, str],
             else:
                 inner.append(make_text(template, text=e))
         out_list.append(''.join(inner))
-    print(out_list)
+    #print(out_list)
     return out_list
 
 
