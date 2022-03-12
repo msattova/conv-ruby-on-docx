@@ -12,8 +12,8 @@ class RubyType(Enum):
     NOTHING = auto()  # ルビも傍点も振らない
     HASPIPE = auto()  # パイプ有りルビ
     NONPIPE = auto()  # パイプなしルビ
+    RUBY    = HASPIPE | NONPIPE #ルビを振る
     BOUTEN  = auto()  # 傍点
-
 
 def convert_basecode(basecode: list[str]) -> list[str]:
     """[|, 親文字, 《, ル, ビ, 》]みたいになっているのを[|, 親文字《ルビ》]にする"""
@@ -33,7 +33,7 @@ def convert_basecode(basecode: list[str]) -> list[str]:
             if in_wr_flag:
                 start_wr.append(i)
             else:
-                if not piped_flag and not ruby_flag and not kr_flag and not now_close:
+                if not (piped_flag or ruby_flag or kr_flag or now_close):
                     marks=dict()
                 elif kr_flag:
                     marks=dict()
@@ -45,40 +45,42 @@ def convert_basecode(basecode: list[str]) -> list[str]:
                 now_close = False
             continue
         if con.REG_TAG.match(bc) is None:
+            match bc:
+                case '|':
+                    marks = dict()
+                    kr_flag = False
+                    marks['pipe'] = start_wr[-1]
+                case '《':
+                    marks['open'] = (bc, i)
+                    piped_flag = False
+                    ruby_flag = True
+                case '》':
+                    marks['close'] = (bc, i)
+                    ruby_flag = False
+                    now_close = True
             if piped_flag and bc != '《':
                 marks['oyamoji'] = (bc, i)
             elif ruby_flag and bc != '》':
                 marks['ruby'] = (bc, i)
-            if bc == '|':
-                marks = dict()
-                kr_flag=False
-                marks['pipe'] = start_wr[-1]
-                piped_flag = True
-            elif bc == '《':
-                marks['open'] = (bc, i)
-                piped_flag = False
-                ruby_flag = True
-            elif bc == '》':
-                marks['close'] = (bc, i)
-                ruby_flag = False
-                now_close = True
         if con.REG_KANJI_AND_RUBY.match(bc):
             marks = dict()
             marks['kr'] = 1
             kr_flag = True
             piped_flag = False
-    ref_tuple = tuple(filter(lambda x: any(x[0]) == True,
-                        tuple(zip(united, start_wr, end_wr))))
+    ref_tuple = tuple(z for z in zip(united, start_wr, end_wr)
+                      if any(z[0])==True)
+
     #print(ref_tuple)
     ind: int = 0
     for i in ref_tuple:
-        if i[0].get('oyamoji') is not None:
-            ind = i[0]['oyamoji'][1]
-            for j, bc in enumerate(striped[ind:]):
-                if bc == '》':
-                    break
-                if con.REG_TAG.match(bc) is not None:
-                    basecode[j+ind] = ''
+        if i[0].get('oyamoji') is None:
+            continue
+        ind = i[0]['oyamoji'][1]
+        for j, bc in enumerate(striped[ind:]):
+            if bc == '》':
+                break
+            if con.REG_TAG.match(bc) is not None:
+                basecode[j+ind] = ''
     return [i for i in basecode if i!= ""]
 
 
@@ -111,7 +113,7 @@ def make_replstr_list(ruby_font: str, in_wr_strs: Iterator) -> list:
     rbtemplate = con.make_template(ruby_font)
     #print('rtxt:\t', ruby_text)
     #print('nrtx:\t', nonruby_text)
-    base_and_ruby = tuple(zip(ruby_text, nonruby_text))
+    base_and_ruby = zip(ruby_text, nonruby_text)
     return con.make_out(rbtemplate, base_and_ruby)
 
 
@@ -136,7 +138,6 @@ def make_reflist(each_lines:list[str],
                     in_ruby.append(RubyType.NOTHING)
             continue
         if not in_wr_flag or con.REG_TAG.match(striped) is not None:
-            #print(striped)
             continue
         # タグじゃなければ、その行をholded_textで置換
         # 元から"<tag>"のような文字列が含まれていると正しく処理されない
@@ -145,15 +146,13 @@ def make_reflist(each_lines:list[str],
         #print('tmp:', tmp)
         #print('striped: ', striped)
         if r"|" == striped:
-            print('pipe: |')
             in_ruby.append(RubyType.HASPIPE)
         elif con.REG_KANJI_AND_RUBY.search(striped):
-            print('kr: ', striped)
             in_ruby.append(RubyType.NONPIPE)
         ref_text.append(striped)
-    rbset = tuple(zip(in_ruby, start_wr, end_wr))
-    print(rbset)
-    return (iter(tuple(enumerate(rbset))), each_lines)
+    rbset = zip(in_ruby, start_wr, end_wr)
+    #print(tuple(rbset))
+    return (rbset, each_lines)
 
 
 def repl_ruby(rubysets: Iterable,
@@ -163,28 +162,20 @@ def repl_ruby(rubysets: Iterable,
     replaced_lines = each_lines
     #i = 0
     for rs in rubysets:
-        #print(rs)
-        if rs[1][0] is RubyType.NOTHING:
-            #i += 1
+        if rs[0] is RubyType.NOTHING:
             continue
         else:
             tmp = list()
-            start = rs[1][1]
+            start = rs[1]
             t = next(repl_strs)
             tmp.append(t)  # 要素数1のリストを作成するための措置
-            if rs[1][0] is RubyType.HASPIPE:
-                # `|`（パイプ）の次の文字列がルビ振り対象文字列なのでnext()を使う
+            if rs[0] is RubyType.HASPIPE:
                 conf = next(rubysets)
-                _, _, end = conf[1]
-                #print('haspipe', tuple(conf))
-                #i += 1
-                #print("haspipe", replaced_lines[start:(end+1)])
-            elif rs[1][0] is RubyType.NONPIPE:
-                end = rs[1][2]
-                #print('nonpipe')
-                #print("nonpipe: ", replaced_lines[start:(end+1)])
+                _, _, end = conf
+            elif rs[0] is RubyType.NONPIPE:
+                end = rs[2]
             replaced_lines[start:(end+1)] = (['']*(end-start)+tmp)
-        #print(rs)
+
     return replaced_lines
 
 
