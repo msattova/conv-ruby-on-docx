@@ -1,0 +1,34 @@
+<mxfile host="65bd71144e">
+    <diagram id="Au9Dei-YvHaLK9B6H_0l" name="ページ1">
+        <mxGraphModel dx="580" dy="1830" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="&lt;font style=&quot;font-size: 23px&quot;&gt;&amp;lt;w:r&amp;gt;aaaaaaa&amp;lt;/w:r&amp;gt;&lt;br&gt;&amp;lt;w:r attr=...&amp;gt;bbb&amp;lt;/w:r&amp;gt;&lt;br&gt;&amp;lt;w:r&amp;gt; | &amp;lt;/w:r&amp;gt;&lt;br&gt;cccccc&lt;br&gt;&amp;lt;w:r&amp;gt;《&amp;lt;/w:r&amp;gt;&lt;br&gt;&amp;lt;w:r&amp;gt;ルビ&amp;lt;/w:r&amp;gt;&lt;br&gt;&amp;lt;w:r&amp;gt;》&amp;lt;/w:r&amp;gt;&lt;br&gt;&amp;lt;w:r&amp;gt;親文字&amp;lt;/w:r&amp;gt;&lt;br&gt;&amp;lt;w:r&amp;gt;《&amp;lt;/w:r&amp;gt;&lt;br&gt;&amp;lt;w:r&amp;gt;ルビ&amp;lt;/w:r&amp;gt;&lt;br&gt;&amp;lt;w:r&amp;gt;》&amp;lt;/w:r&amp;gt;&lt;br&gt;&amp;lt;w:r&amp;gt;など&amp;lt;/w:r&amp;gt;&lt;br&gt;&amp;lt;w:r&amp;gt;親文字2&amp;lt;/w:r&amp;gt;&lt;br&gt;&amp;lt;w:r&amp;gt;《ルビ》&amp;lt;/w:r&amp;gt;&lt;br&gt;&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="109" y="-100" width="370" height="470" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="" style="shape=flexArrow;endArrow=classic;html=1;fontSize=23;endWidth=15;endSize=6.83;" edge="1" parent="1" target="4">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="479" y="130" as="sourcePoint"/>
+                        <mxPoint x="720" y="130" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="520" y="130"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="4" value="&lt;font style=&quot;font-size: 23px&quot;&gt;&amp;lt;w:r&amp;gt;aaaaaaa&amp;lt;/w:r&amp;gt;&lt;br&gt;&amp;lt;w:r attr=...&amp;gt;bbb&amp;lt;/w:r&amp;gt;&lt;br&gt;&amp;lt;w:r&amp;gt; | &amp;lt;/w:r&amp;gt;&lt;br&gt;&amp;lt;w:r&amp;gt;cccccc《ルビ》&amp;lt;/w:r&amp;gt;&lt;br&gt;&amp;lt;w:r&amp;gt;親文字《ルビ》など&amp;lt;/w:r&amp;gt;&lt;br&gt;&amp;lt;w:r&amp;gt;親文字2《ルビ》&amp;lt;/w:r&amp;gt;&lt;br&gt;&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="710" y="-100" width="370" height="470" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="" style="shape=flexArrow;endArrow=classic;html=1;fontSize=23;" edge="1" parent="1" target="6">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="860" y="360" as="sourcePoint"/>
+                        <mxPoint x="860" y="510" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="6" value="&lt;h1&gt;txt2docx&lt;/h1&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;fontSize=23;" vertex="1" parent="1">
+                    <mxGeometry x="700" y="450" width="355" height="100" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
