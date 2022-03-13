@@ -49,20 +49,26 @@ def convert_basecode(basecode: list[str]) -> list[str]:
                 case '|':
                     marks = dict()
                     kr_flag = False
+                    ruby_flag = False
+                    piped_flag = True
                     marks['pipe'] = start_wr[-1]
-                case '《':
+                case s if con.REG_OP_SENTENCE.match(s):
                     marks['open'] = (bc, i)
                     piped_flag = False
                     ruby_flag = True
-                case '》':
+                    if bc != '《':
+                        marks['oyamoji'] = (bc, i)
+                case s if con.REG_CL_SENTENCE.match(s):
                     marks['close'] = (bc, i)
                     ruby_flag = False
                     now_close = True
-            if piped_flag and bc != '《':
+
+            if piped_flag and not con.REG_PIPE.match(bc):
                 marks['oyamoji'] = (bc, i)
-            elif ruby_flag and bc != '》':
+            elif ruby_flag and not con.REG_OP_SENTENCE.match(bc):
                 marks['ruby'] = (bc, i)
-        if con.REG_KANJI_AND_RUBY.match(bc):
+        if not piped_flag and con.REG_KANJI_AND_RUBY.match(bc):
+            print(f'kr: {bc}')
             marks = dict()
             marks['kr'] = 1
             kr_flag = True
@@ -70,14 +76,14 @@ def convert_basecode(basecode: list[str]) -> list[str]:
     ref_tuple = tuple(z for z in zip(united, start_wr, end_wr)
                       if any(z[0])==True)
 
-    #print(ref_tuple)
+    print(ref_tuple)
     ind: int = 0
     for i in ref_tuple:
         if i[0].get('oyamoji') is None:
             continue
         ind = i[0]['oyamoji'][1]
         for j, bc in enumerate(striped[ind:]):
-            if bc == '》':
+            if con.REG_CL_SENTENCE.match(bc):
                 break
             if con.REG_TAG.match(bc) is not None:
                 basecode[j+ind] = ''
