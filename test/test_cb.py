@@ -1,22 +1,22 @@
-import unittest
+import pytest
 
 import modules.txt2docx as t2d
 
-from test.cases import testcode, idealcode, testcode2, idealcode2, testcode3, idealcode3
+from test.cases import (testcode, idealcode,
+                        testcode2, idealcode2,
+                        testcode3, idealcode3,
+                        testcode4, idealcode4)
 
-class UnitTest(unittest.TestCase):
+def test_convert_basecode():
 
-    def test_convert_basecode(self):
-        return_code = t2d.convert_basecode(testcode)
-        self.assertEqual("".join(return_code), "".join(idealcode))
-        return_code2 = t2d.convert_basecode(testcode2)
-        self.assertEqual("".join(return_code2), "".join(idealcode2))
+    return_code2 = t2d.convert_basecode(testcode2)
+    assert "".join(return_code2) == "".join(idealcode2)
 
-        return_code3 = t2d.convert_basecode(testcode3)
-        print("\t ret: ", "".join(return_code3))
-        print("\t ideal: ", "".join(idealcode3))
-        self.assertEqual("".join(return_code3), "".join(idealcode3))
+def test_convert_basecode2():
+
+    return_code4 = t2d.convert_basecode(testcode4)
+    assert "".join(return_code4) == "".join(idealcode4)
 
 
 if __name__ == '__main__':
-    unittest.main()
+    pytest.main()

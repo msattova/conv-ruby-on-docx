@@ -103,8 +103,11 @@ REG_WR = regex.compile(r'</?w:r(\s[^<>]+)?>')
 REG_KANJI_AND_RUBY = regex.compile(r'[\p{Script=Han}\u30F5]+《[^《》]*?》')
 # 漢字にだけマッチするパターン
 REG_KANJI = regex.compile(r'[\p{Script=Han}\u30F5]+')
+# パイプ（|）つき親文字にマッチするパターン（例：|親文字《ルビ》）
+REG_PIPE_OYAMOJI = regex.compile(r'(?<=\|)[^|]+(?=《)')
 # パイプ（|）にマッチするパターン
 REG_PIPE = regex.compile(r'\|')
 # OP：'文字列《'にマッチ。  /  CL：'》文字列'にマッチ
 REG_OP_SENTENCE = regex.compile(r'[^《》]*《')
 REG_CL_SENTENCE = regex.compile(r'》[^《》]*')
+REG_OPCL_SENTENCE = regex.compile(r'[^《》]*《[^《》]*》[^《》]*')

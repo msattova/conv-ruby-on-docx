@@ -16,79 +16,17 @@ class RubyType(Enum):
     BOUTEN  = auto()  # 傍点
 
 def convert_basecode(basecode: list[str]) -> list[str]:
-    """[|, 親文字, 《, ル, ビ, 》]みたいになっているのを[|, 親文字《ルビ》]にする"""
-    united = list()
-    marks = dict()
-    in_wr_flag = False
-    start_wr: list[int] = list()
-    end_wr: list[int] = list()
-    now_close = False
-    kr_flag = False
-    piped_flag: bool = False
     ruby_flag = False
-    striped = [bc.lstrip() for bc in basecode]
-    for i, bc in enumerate(striped):
-        if con.REG_WR.match(bc) is not None:
-            in_wr_flag = False if in_wr_flag else True
-            if in_wr_flag:
-                start_wr.append(i)
-            else:
-                if not (piped_flag or ruby_flag or kr_flag or now_close):
-                    marks=dict()
-                elif kr_flag:
-                    marks=dict()
-                    united[-1] = {}
-                end_wr.append(i)
-                united.append(marks)
-                marks = dict()
-                kr_flag = False
-                now_close = False
-            continue
-        if con.REG_TAG.match(bc) is None:
-            match bc:
-                case '|':
-                    marks = dict()
-                    kr_flag = False
-                    ruby_flag = False
-                    piped_flag = True
-                    marks['pipe'] = start_wr[-1]
-                case s if con.REG_OP_SENTENCE.match(s):
-                    marks['open'] = (bc, i)
-                    piped_flag = False
-                    ruby_flag = True
-                    if bc != '《':
-                        marks['oyamoji'] = (bc, i)
-                case s if con.REG_CL_SENTENCE.match(s):
-                    marks['close'] = (bc, i)
-                    ruby_flag = False
-                    now_close = True
-
-            if piped_flag and not con.REG_PIPE.match(bc):
-                marks['oyamoji'] = (bc, i)
-            elif ruby_flag and not con.REG_OP_SENTENCE.match(bc):
-                marks['ruby'] = (bc, i)
-        if not piped_flag and con.REG_KANJI_AND_RUBY.match(bc):
-            print(f'kr: {bc}')
-            marks = dict()
-            marks['kr'] = 1
-            kr_flag = True
-            piped_flag = False
-    ref_tuple = tuple(z for z in zip(united, start_wr, end_wr)
-                      if any(z[0])==True)
-
-    print(ref_tuple)
-    ind: int = 0
-    for i in ref_tuple:
-        if i[0].get('oyamoji') is None:
-            continue
-        ind = i[0]['oyamoji'][1]
-        for j, bc in enumerate(striped[ind:]):
-            if con.REG_CL_SENTENCE.match(bc):
-                break
-            if con.REG_TAG.match(bc) is not None:
-                basecode[j+ind] = ''
+    for ind, bc in enumerate(i for i in basecode):
+        if (con.REG_PIPE.match(bc) or con.REG_OP_SENTENCE.match(bc)) is not None:
+            ruby_flag = True
+            print(f'open: {bc}')
+        if ruby_flag:
+            if (con.REG_CL_SENTENCE.match(bc) or con.REG_OPCL_SENTENCE.match(bc)) is not None:
+                ruby_flag = False
+            elif con.REG_TAG.match(bc) is not None:
+                basecode[ind] = ''
     return [i for i in basecode if i!= ""]
-
 
 def make_replstr_list(ruby_font: str, in_wr_strs: Iterator) -> list:
     """置き換え対象文字列リストの生成"""
