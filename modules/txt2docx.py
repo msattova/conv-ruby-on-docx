@@ -1,7 +1,8 @@
 
-from email.mime import base
+
 import re
 from enum import Enum, auto
+from sqlite3 import connect
 from typing import Iterable, Iterator
 from bs4 import BeautifulSoup as bs4
 
@@ -15,6 +16,20 @@ class RubyType(Enum):
     RUBY    = HASPIPE | NONPIPE #ルビを振る
     BOUTEN  = auto()  # 傍点
 
+def connect_serial_nontag(code: list[str]) -> list[str]:
+    tmp_code = tuple(i for i in code)
+    for i, c in enumerate(tmp_code):
+        if len(code) < (i+1):
+            break
+        else:
+            if c == "":
+                continue
+            elif not (con.REG_TAG.match(c) or con.REG_TAG.match(tmp_code[i+1])):
+                code[i] = code[i]+code[i+1]
+                code[i+1] = ""
+    return [i for i in code if i!=""]
+
+
 def convert_basecode(basecode: list[str]) -> list[str]:
     ruby_flag = False
     for ind, bc in enumerate(i for i in basecode):
@@ -26,7 +41,7 @@ def convert_basecode(basecode: list[str]) -> list[str]:
                 ruby_flag = False
             elif con.REG_TAG.match(bc) is not None:
                 basecode[ind] = ''
-    return [i for i in basecode if i!= ""]
+    return connect_serial_nontag([i for i in basecode if i!= ''])
 
 def make_replstr_list(ruby_font: str, in_wr_strs: Iterator) -> list:
     """置き換え対象文字列リストの生成"""
@@ -122,6 +137,25 @@ def repl_ruby(rubysets: Iterable,
 
     return replaced_lines
 
+def split_code(code: str) -> list[str]:
+    return [i for i in re.sub(
+            r'(<[^<>]*>)', "\n\\1\n", code).splitlines()
+            if i != "" ]
+
+def replace_ruby(base: list[str]):
+    joined = "".join(base)
+    f = con.REG_PIPE_OYAMOJI_RUBY.findall(joined)
+    print(f"findall: {f}")
+    template = con.make_template()
+    result = con.REG_PIPE_OYAMOJI_RUBY.sub(rf"</w:t></w:r>{template[0]}\2{template[1]}\1{template[2]}<w:r><w:t>", joined)
+    print(f"result: {result}")
+    for b in base:
+        if con.REG_PIPE_OYAMOJI.search(b):
+            capture = con.REG_PIPE_OYAMOJI_RUBY.search(b).groups()
+            print(f"cap: {capture}")
+
+    return result
+
 
 def make_new_xml(ruby_font: str, code: str) -> str:
     """out.docx内のdocument.xmlに書き込む文字列生成"""
@@ -131,14 +165,16 @@ def make_new_xml(ruby_font: str, code: str) -> str:
     soup = bs4(code, 'xml')
     holded_text = iter(soup.get_text(con.SEPARATE_SYMBOL)
                          .split(con.SEPARATE_SYMBOL))  # 元のテキストデータを分割して保持
-    each_lines = [i.lstrip() for i in soup.prettify().splitlines()] # xmlを一行づつ分割
-    #print("".join(each_lines))
+    each_lines = split_code(code)  # xmlを一行づつ分割
     each_lines = convert_basecode(each_lines)
+    #print(each_lines)
+    wrt = replace_ruby(each_lines)
+    #wrt = "".join(each_lines)
     #print("".join(each_lines))
-    repl_strs = iter(make_replstr_list(ruby_font, in_wr_str))
-    rubysets, each_lines = make_reflist(each_lines, holded_text)
+    #repl_strs = iter(make_replstr_list(ruby_font, in_wr_str))
+    #rubysets, each_lines = make_reflist(each_lines, holded_text)
     #print(tuple(rubysets))
-    replaced_lines = repl_ruby(rubysets, repl_strs, each_lines)
-    wrt = ''.join(replaced_lines)
+    #replaced_lines = repl_ruby(rubysets, repl_strs, each_lines)
+    #wrt = ''.join(replaced_lines)
 
     return wrt
