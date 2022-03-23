@@ -53,7 +53,6 @@ def make_template(font="") -> tuple:
         # ルビ振り処理対象外の余った文字列をここに
         (r'</w:t>', r'</w:r>'))) # 4 close
 
-
 def make_rubyset(template: tuple[str, str, str, str, str],
                  furigana: str, kanji: str) -> str:
     """ルビ振り対象のテキストをタグと結合"""
@@ -65,6 +64,9 @@ def make_text(template: tuple[str, str, str, str, str],
     """ルビ振り対象外のテキストをタグと結合"""
     return template[3]+text+template[4]
 
+
+def make_bouten_template():
+    pass
 
 def make_out(template: tuple[str, str, str, str, str],
              base_ruby: Iterable) -> list[str]:
