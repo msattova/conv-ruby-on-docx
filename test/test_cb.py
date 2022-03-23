@@ -2,7 +2,7 @@ import pytest
 
 import modules.txt2docx as t2d
 
-from test.cases import (testcode, idealcode,
+from test.cases_cb import (testcode, idealcode,
                         testcode2, idealcode2,
                         testcode3, idealcode3,
                         testcode4, idealcode4)
