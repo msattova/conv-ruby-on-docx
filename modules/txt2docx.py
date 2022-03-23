@@ -38,12 +38,12 @@ def split_code(code: str) -> list[str]:
             r'(<[^<>]*>)', "\n\\1\n", code).splitlines()
             if i != "" ]
 
-def replace_rubies_with_pipe(template: list[str], code: str):
+def replace_rubies_with_pipe(template: tuple[str, str, str, str, str], code: str):
     return con.REG_PIPE_OYAMOJI_RUBY.sub(
         rf"</w:t></w:r>{template[0]}\2{template[1]}\1{template[2]}<w:r><w:t>", code)
 
 
-def replace_rubies_without_pipe(template: list[str], code: str):
+def replace_rubies_without_pipe(template: tuple[str, str, str, str, str], code: str):
     return con.REG_KANJI_AND_RUBY.sub(
         rf"</w:t></w:r>{template[0]}\2{template[1]}\1{template[2]}<w:r><w:t>", code)
 
