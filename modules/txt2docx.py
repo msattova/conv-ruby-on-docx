@@ -17,22 +17,34 @@ def connect_serial_nontag(code: list[str]) -> list[str]:
                 code[i+1] = ""
     return [i for i in code if i!=""]
 
+def isolate(pattern, code, opening, closing) -> list[str]:
+    tmp_code = tuple(i for i in code)
+    new_code = ''
+    for i, c in enumerate(tmp_code):
+        if con.REG_TAG.match(c):
+            continue
+        result = pattern.findall(c)
+        if result != ():
+            new_code = ''
+            for m in result:
+                if m[0] != '':
+                    new_code += f'{m[0]}\n'
+                    if m[1] != '':
+                        new_code += f'{closing}\n{opening}\n'
+                if m[1] != '':
+                    new_code += f'{m[1]}\n'
+                    if m[2] != '':
+                        new_code += f'{closing}\n{opening}\n'
+                if m[2] != '':
+                    new_code += f'{m[2]}\n'
+            code[i] = new_code
+        else:
+            continue
+    return [ j for j in ("".join([f"{i}\n" for i in code])).splitlines() if j != '']
 
 def isolate_rubysets(code: list[str], opening: str, closing: str) -> list[str]:
-    tmp_code = tuple(i for i in code)
-    for i, c in enumerate(tmp_code):
-        if con.REG_PIPE_OYAMOJI_RUBY.match(c):
-            code[i] = con.REG_PIPE_OYAMOJI_GET_AROUND.sub(
-                rf'\1{closing}{opening}\2{closing}{opening}\3', c)
-        else:
-            continue
-    tmp_code = tuple(i for i in code)
-    for i, c in enumerate(tmp_code):
-        if con.REG_KANJI_AND_RUBY.match(c):
-            code[i] = con.REG_KANJI_AND_RUBY_AROUND.sub(
-                rf'\1{closing}{opening}\2{closing}{opening}\3', c)
-        else:
-            continue
+    code = isolate(con.REG_PIPE_OYAMOJI_GET_AROUND, code, opening, closing)
+    code = isolate(con.REG_KANJI_AND_RUBY_AROUND, code, opening, closing)
     return code
 
 def convert_basecode(basecode: list[str]) -> list[str]:

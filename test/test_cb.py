@@ -2,9 +2,7 @@ import pytest
 
 import modules.txt2docx as t2d
 
-from test.cases_cb import (testcode, idealcode,
-                        testcode2, idealcode2,
-                        testcode3, idealcode3,
+from test.cases_cb import (testcode2, idealcode2,
                         testcode4, idealcode4)
 
 def test_convert_basecode():
