@@ -56,14 +56,17 @@ def isolate_rubysets(code: list[str], opening: str, closing: str) -> list[str]:
 
 def convert_basecode(basecode: list[str]) -> list[str]:
     ruby_flag = False
-    for ind, bc in enumerate(i for i in basecode):
-        if (con.REG_PIPE.match(bc) or con.REG_OP_SENTENCE.match(bc)) is not None:
+    ref_code = tuple(i for i in basecode)
+    for ind, bc in enumerate(i for i in ref_code):
+        if (con.REG_PIPE.match(bc) or con.REG_OP_SENTENCE.match(bc) or con.REG_BOUTEN_OP.search(bc)) is not None:
             ruby_flag = True
         if ruby_flag:
-            if (con.REG_CL_SENTENCE.match(bc) or con.REG_OPCL_SENTENCE.match(bc)) is not None:
+            print(bc)
+            if (con.REG_CL_SENTENCE.match(bc) or con.REG_OPCL_SENTENCE.match(bc) or con.REG_BOUTEN_CL.search(bc) or con.REG_BOUTEN_OPCL.search(bc)) is not None:
                 ruby_flag = False
             elif con.REG_TAG.match(bc) is not None:
                 basecode[ind] = ''
+    print(basecode)
     return connect_serial_nontag([i for i in basecode if i!= ''])
 
 def replace_rubies(ruby_type: RubyType, template: tuple[str, str, str, str, str], code: str):
@@ -89,14 +92,14 @@ def replace_ruby(base: list[str], template: tuple) -> list[str]:
     #print(f"result: \t{result}\n")
     result2 = replace_rubies(RubyType.NONPIPE, template, result)
     #print(f"result2: \t{result2}\n")
-    #result3 = con.REG_KEEP_BLACKET.sub(r"《", result2)
-    return result2
+    result3 = con.REG_KEEP_BLACKET.sub(r"《", result2)
+    return result3
 
 def make_new_xml(ruby_font: str, code: str) -> str:
     """out.docx内のdocument.xmlに書き込む文字列生成"""
     template = con.make_template(ruby_font)
-    each_lines = code_to_list(code)  # xmlを一行づつ分割
-    each_lines = convert_basecode(each_lines)
+    basecode = code_to_list(code)  # xmlを一行づつ分割
+    each_lines = convert_basecode(basecode)
     each_lines = isolate_rubysets(each_lines, template[3], template[4])
     #print(each_lines)
     wrt = replace_ruby(each_lines, template)
