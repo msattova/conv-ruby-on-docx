@@ -8,7 +8,7 @@ SPLIT_SYMBOL: str = '~'      # 置換処理時、文字列を分割するため�
 SEPARATE_SYMBOL = '!@sep$@'  # 元のテキストをリストとして取得する際に利用する分割用文字列
 
 
-def make_template(font: str) -> tuple:
+def make_template(font="") -> tuple:
     if font == '':
         pf = platform.system()
         if pf == 'Windows':
@@ -19,7 +19,6 @@ def make_template(font: str) -> tuple:
             font = 'Noto Serif CJK JP'
         else:  # その他の結果が出た場合
             font = 'Noto Serif CJK JP'
-#<w:r ssssr></w:r>
     return tuple(''.join(s) for s in (
         (r'<w:r>', r'<w:ruby>', r'<w:rubyPr>',
          r'<w:rubyAlign w:val="distributeSpace"/>',
@@ -54,7 +53,6 @@ def make_template(font: str) -> tuple:
         # ルビ振り処理対象外の余った文字列をここに
         (r'</w:t>', r'</w:r>'))) # 4 close
 
-
 def make_rubyset(template: tuple[str, str, str, str, str],
                  furigana: str, kanji: str) -> str:
     """ルビ振り対象のテキストをタグと結合"""
@@ -66,6 +64,9 @@ def make_text(template: tuple[str, str, str, str, str],
     """ルビ振り対象外のテキストをタグと結合"""
     return template[3]+text+template[4]
 
+
+def make_bouten_template():
+    pass
 
 def make_out(template: tuple[str, str, str, str, str],
              base_ruby: Iterable) -> list[str]:
@@ -100,11 +101,21 @@ REG_TAG = regex.compile(r'<[^<>]*>')
 # w:rタグの開始or終了にマッチ
 REG_WR = regex.compile(r'</?w:r(\s[^<>]+)?>')
 # 漢字《かんじ》にマッチするパターン
-REG_KANJI_AND_RUBY = regex.compile(r'[\p{Script=Han}\u30F5]+《[^《》]*?》')
+REG_KANJI_AND_RUBY = regex.compile(r'([\p{Script=Han}\u30F5]+)《([^《》]+)》')
+REG_KANJI_AND_RUBY_AROUND = regex.compile(
+    r'([\p{Script=Han}\u30F5]+《[^《》]*?》)')
 # 漢字にだけマッチするパターン
 REG_KANJI = regex.compile(r'[\p{Script=Han}\u30F5]+')
+# パイプ（|）つき親文字にマッチするパターン（例：|親文字《ルビ》）
+REG_PIPE_OYAMOJI = regex.compile(r'(?<=\|)([^|]+)(?=《)')
+REG_PIPE_OYAMOJI_RUBY = regex.compile(r'\|([^|]+)《([^《》]+)》')
+REG_PIPE_OYAMOJI_GET_AROUND = regex.compile(r'(\|[^|《》]+《[^《》]+》)')
+# |《にマッチするパターン（《をそのまま出力したい場合）
+REG_KEEP_BLACKET = regex.compile(r'\|《')
 # パイプ（|）にマッチするパターン
 REG_PIPE = regex.compile(r'\|')
 # OP：'文字列《'にマッチ。  /  CL：'》文字列'にマッチ
 REG_OP_SENTENCE = regex.compile(r'[^《》]*《')
 REG_CL_SENTENCE = regex.compile(r'》[^《》]*')
+REG_OPCL_SENTENCE = regex.compile(r'[^《》]*《[^《》]*》[^《》]*')
+REG_BOUTEN = regex.compile(r'《《(?:(?!《《|》》).)*》》')

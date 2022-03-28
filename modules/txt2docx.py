@@ -1,206 +1,104 @@
 
-from email.mime import base
 import re
-from enum import Enum, auto
-from typing import Iterable, Iterator
-from bs4 import BeautifulSoup as bs4
-
+from enum import Enum,auto
 from . import consts as con
 
+class RubyType(Enum) :
+    HASPIPE = auto()
+    NONPIPE = auto()
 
-class RubyType(Enum):
-    NOTHING = auto()  # ルビも傍点も振らない
-    HASPIPE = auto()  # パイプ有りルビ
-    NONPIPE = auto()  # パイプなしルビ
-    RUBY    = HASPIPE | NONPIPE #ルビを振る
-    BOUTEN  = auto()  # 傍点
+def connect_serial_nontag(code: list[str]) -> list[str]:
+    tmp_code = tuple(i for i in code)
+    for i, c in enumerate(tmp_code):
+        if len(code) < (i+1):
+            break
+        else:
+            if c == "" or code[i] == "" :
+                continue
+            elif not (con.REG_TAG.match(c) or con.REG_TAG.match(tmp_code[i+1])):
+                code[i] = code[i]+code[i+1]
+                code[i+1] = ""
+    return [i for i in code if i!=""]
+
+def filter_void_tag(code: str, opening: str, closing: str) -> str:
+    return re.sub(f"{opening}{closing}", "", code)
+
+def code_to_list(code: str) -> list[str]:
+    return [i for i in
+            re.sub(r'(<[^<>]+>)', '\n\\1\n', code).splitlines()
+        if i != '']
+
+def isolate(ruby_type: RubyType, code: list[str], opening: str, closing: str) -> list[str]:
+    match ruby_type:
+        case RubyType.NONPIPE:
+            pattern = con.REG_KANJI_AND_RUBY_AROUND
+        case RubyType.HASPIPE:
+            pattern = con.REG_PIPE_OYAMOJI_GET_AROUND
+        case _:
+            return []
+    ref_code = tuple(i for i in code)
+    tmp_code = [i for i in code]
+    for i, c in enumerate(ref_code):
+        if con.REG_TAG.match(c) or c == '':
+            continue
+        if ruby_type == RubyType.NONPIPE and con.REG_PIPE_OYAMOJI_GET_AROUND.match(c):
+            continue
+        elif ruby_type == RubyType.HASPIPE and con.REG_KANJI_AND_RUBY_AROUND.match(c):
+            continue
+        tmp_code[i] = pattern.sub(
+            rf'{closing}{opening}\1{closing}{opening}', c)
+    return code_to_list(filter_void_tag("".join(tmp_code), opening, closing))
+
+def isolate_rubysets(code: list[str], opening: str, closing: str) -> list[str]:
+    new_code = isolate(RubyType.HASPIPE, code, opening, closing)
+    new_code = isolate(RubyType.NONPIPE, new_code, opening, closing)
+    return new_code
 
 def convert_basecode(basecode: list[str]) -> list[str]:
-    """[|, 親文字, 《, ル, ビ, 》]みたいになっているのを[|, 親文字《ルビ》]にする"""
-    united = list()
-    marks = dict()
-    in_wr_flag = False
-    start_wr: list[int] = list()
-    end_wr: list[int] = list()
-    now_close = False
-    kr_flag = False
-    piped_flag: bool = False
     ruby_flag = False
-    striped = [bc.lstrip() for bc in basecode]
-    for i, bc in enumerate(striped):
-        if con.REG_WR.match(bc) is not None:
-            in_wr_flag = False if in_wr_flag else True
-            if in_wr_flag:
-                start_wr.append(i)
-            else:
-                if not (piped_flag or ruby_flag or kr_flag or now_close):
-                    marks=dict()
-                elif kr_flag:
-                    marks=dict()
-                    united[-1] = {}
-                end_wr.append(i)
-                united.append(marks)
-                marks = dict()
-                kr_flag = False
-                now_close = False
+    for ind, bc in enumerate(i for i in basecode):
+        if (con.REG_PIPE.match(bc) or con.REG_OP_SENTENCE.match(bc)) is not None:
+            ruby_flag = True
+        if ruby_flag:
+            if (con.REG_CL_SENTENCE.match(bc) or con.REG_OPCL_SENTENCE.match(bc)) is not None:
+                ruby_flag = False
+            elif con.REG_TAG.match(bc) is not None:
+                basecode[ind] = ''
+    return connect_serial_nontag([i for i in basecode if i!= ''])
+
+def replace_rubies(ruby_type: RubyType, template: tuple[str, str, str, str, str], code: str):
+    match ruby_type:
+        case RubyType.NONPIPE:
+            pattern = con.REG_KANJI_AND_RUBY
+        case RubyType.HASPIPE:
+            pattern = con.REG_PIPE_OYAMOJI_RUBY
+        case _:
+            return []
+    tmp_code = code_to_list(code)
+    ref_code = tuple(i for i in tmp_code)
+    for i, c in enumerate(ref_code):
+        if con.REG_TAG.match(c) or c == '':
             continue
-        if con.REG_TAG.match(bc) is None:
-            match bc:
-                case '|':
-                    marks = dict()
-                    kr_flag = False
-                    ruby_flag = False
-                    piped_flag = True
-                    marks['pipe'] = start_wr[-1]
-                case s if con.REG_OP_SENTENCE.match(s):
-                    marks['open'] = (bc, i)
-                    piped_flag = False
-                    ruby_flag = True
-                    if bc != '《':
-                        marks['oyamoji'] = (bc, i)
-                case s if con.REG_CL_SENTENCE.match(s):
-                    marks['close'] = (bc, i)
-                    ruby_flag = False
-                    now_close = True
+        tmp_code[i] = pattern.sub(
+            rf"{template[4]}{template[0]}\2{template[1]}\1{template[2]}{template[3]}", c)
+    return filter_void_tag("".join(tmp_code), template[3], template[4])
 
-            if piped_flag and not con.REG_PIPE.match(bc):
-                marks['oyamoji'] = (bc, i)
-            elif ruby_flag and not con.REG_OP_SENTENCE.match(bc):
-                marks['ruby'] = (bc, i)
-        if not piped_flag and con.REG_KANJI_AND_RUBY.match(bc):
-            print(f'kr: {bc}')
-            marks = dict()
-            marks['kr'] = 1
-            kr_flag = True
-            piped_flag = False
-    ref_tuple = tuple(z for z in zip(united, start_wr, end_wr)
-                      if any(z[0])==True)
-
-    print(ref_tuple)
-    ind: int = 0
-    for i in ref_tuple:
-        if i[0].get('oyamoji') is None:
-            continue
-        ind = i[0]['oyamoji'][1]
-        for j, bc in enumerate(striped[ind:]):
-            if con.REG_CL_SENTENCE.match(bc):
-                break
-            if con.REG_TAG.match(bc) is not None:
-                basecode[j+ind] = ''
-    return [i for i in basecode if i!= ""]
-
-
-def make_replstr_list(ruby_font: str, in_wr_strs: Iterator) -> list:
-    """置き換え対象文字列リストの生成"""
-    replace_target = list()
-    for s in in_wr_strs:
-        if con.REG_PIPE.search(s):
-            replace_target.append(next(in_wr_strs))
-        elif con.REG_KANJI_AND_RUBY.search(s):
-            replace_target.append(s)
-    ruby_kanji = list()
-    ruby_text = list()
-    nonruby_text = list()
-    INTO_SYMBOL = con.SPLIT_SYMBOL + con.REPL_SYMBOL + con.SPLIT_SYMBOL
-    for s in replace_target:
-        ruby_kanji.append(con.REG_KANJI_AND_RUBY.findall(s))
-        elaced = con.REG_TAG.sub('', s).strip()  # タグを消去
-        tmp= [i for i in
-                con.REG_KANJI_AND_RUBY.sub(
-                    INTO_SYMBOL, elaced).split(con.SPLIT_SYMBOL)
-                if i != '']
-        nonruby_text.append(tmp)
-    for rk in ruby_kanji:
-        tmp = list()
-        for part in rk:
-            tmp += con.REG_RUBY.findall(part)
-            tmp += con.REG_KANJI.findall(part)
-        ruby_text.append(tmp)
-    rbtemplate = con.make_template(ruby_font)
-    #print('rtxt:\t', ruby_text)
-    #print('nrtx:\t', nonruby_text)
-    base_and_ruby = zip(ruby_text, nonruby_text)
-    return con.make_out(rbtemplate, base_and_ruby)
-
-
-def make_reflist(each_lines:list[str],
-                holded_text:Iterator) -> tuple[Iterable, list[str]]:
-    """ ルビ振り処理に参照するオブジェクトを生成"""
-    in_wr_flag = False
-    start_wr: list[int]      = list()
-    end_wr:   list[int]      = list()
-    in_ruby:  list[RubyType] = list()
-    ref_text: list[str]      = list()
-    #print(each_lines)
-    for i, x in enumerate(each_lines):
-        striped = x.strip()
-        if con.REG_WR.match(striped) is not None:
-            in_wr_flag = False if in_wr_flag else True
-            if in_wr_flag:
-                start_wr.append(i)
-            else:
-                end_wr.append(i)
-                if len(end_wr) != len(in_ruby):
-                    in_ruby.append(RubyType.NOTHING)
-            continue
-        if not in_wr_flag or con.REG_TAG.match(striped) is not None:
-            continue
-        # タグじゃなければ、その行をholded_textで置換
-        # 元から"<tag>"のような文字列が含まれていると正しく処理されない
-        tmp = next(holded_text)
-        each_lines[i] = tmp
-        #print('tmp:', tmp)
-        #print('striped: ', striped)
-        if r"|" == striped:
-            in_ruby.append(RubyType.HASPIPE)
-        elif con.REG_KANJI_AND_RUBY.search(striped):
-            in_ruby.append(RubyType.NONPIPE)
-        ref_text.append(striped)
-    rbset = zip(in_ruby, start_wr, end_wr)
-    #print(tuple(rbset))
-    return (rbset, each_lines)
-
-
-def repl_ruby(rubysets: Iterable,
-                repl_strs: Iterator,
-                each_lines: list[str]) -> list[str]:
-    """ルビ振り置換"""
-    replaced_lines = each_lines
-    #i = 0
-    for rs in rubysets:
-        if rs[0] is RubyType.NOTHING:
-            continue
-        else:
-            tmp = list()
-            start = rs[1]
-            t = next(repl_strs)
-            tmp.append(t)  # 要素数1のリストを作成するための措置
-            if rs[0] is RubyType.HASPIPE:
-                conf = next(rubysets)
-                _, _, end = conf
-            elif rs[0] is RubyType.NONPIPE:
-                end = rs[2]
-            replaced_lines[start:(end+1)] = (['']*(end-start)+tmp)
-
-    return replaced_lines
-
+def replace_ruby(base: list[str], template: tuple) -> list[str]:
+    joined = "".join(base)
+    result = replace_rubies(RubyType.HASPIPE, template, joined)
+    #print(f"result: \t{result}\n")
+    result2 = replace_rubies(RubyType.NONPIPE, template, result)
+    #print(f"result2: \t{result2}\n")
+    #result3 = con.REG_KEEP_BLACKET.sub(r"《", result2)
+    return result2
 
 def make_new_xml(ruby_font: str, code: str) -> str:
     """out.docx内のdocument.xmlに書き込む文字列生成"""
-    nc = re.sub(r'\s|\n', '', code)
-    in_wr_str = iter(re.findall(con.REG_SURROUND_WR, nc))
-    #print(re.findall(con.REG_SURROUND_WR, nc))
-    soup = bs4(code, 'xml')
-    holded_text = iter(soup.get_text(con.SEPARATE_SYMBOL)
-                         .split(con.SEPARATE_SYMBOL))  # 元のテキストデータを分割して保持
-    each_lines = [i.lstrip() for i in soup.prettify().splitlines()] # xmlを一行づつ分割
-    #print("".join(each_lines))
+    template = con.make_template(ruby_font)
+    each_lines = code_to_list(code)  # xmlを一行づつ分割
     each_lines = convert_basecode(each_lines)
-    #print("".join(each_lines))
-    repl_strs = iter(make_replstr_list(ruby_font, in_wr_str))
-    rubysets, each_lines = make_reflist(each_lines, holded_text)
-    #print(tuple(rubysets))
-    replaced_lines = repl_ruby(rubysets, repl_strs, each_lines)
-    wrt = ''.join(replaced_lines)
+    each_lines = isolate_rubysets(each_lines, template[3], template[4])
+    #print(each_lines)
+    wrt = replace_ruby(each_lines, template)
 
     return wrt
