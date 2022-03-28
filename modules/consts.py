@@ -101,7 +101,7 @@ REG_TAG = regex.compile(r'<[^<>]*>')
 # w:rタグの開始or終了にマッチ
 REG_WR = regex.compile(r'</?w:r(\s[^<>]+)?>')
 # 漢字《かんじ》にマッチするパターン
-REG_KANJI_AND_RUBY = regex.compile(r'([\p{Script=Han}\u30F5]+)《([^《》]*?)》')
+REG_KANJI_AND_RUBY = regex.compile(r'([\p{Script=Han}\u30F5]+)《([^《》]+)》')
 REG_KANJI_AND_RUBY_AROUND = regex.compile(
     r'([\p{Script=Han}\u30F5]+《[^《》]*?》)')
 # 漢字にだけマッチするパターン

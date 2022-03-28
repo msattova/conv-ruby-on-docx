@@ -20,7 +20,7 @@ def connect_serial_nontag(code: list[str]) -> list[str]:
                 code[i+1] = ""
     return [i for i in code if i!=""]
 
-def filter_void_wt(code: str, opening: str, closing: str) -> str:
+def filter_void_tag(code: str, opening: str, closing: str) -> str:
     return re.sub(f"{opening}{closing}", "", code)
 
 def code_to_list(code: str) -> list[str]:
@@ -47,11 +47,10 @@ def isolate(ruby_type: RubyType, code: list[str], opening: str, closing: str) ->
             continue
         tmp_code[i] = pattern.sub(
             rf'{closing}{opening}\1{closing}{opening}', c)
-    return code_to_list(filter_void_wt("".join(tmp_code), opening, closing))
+    return code_to_list(filter_void_tag("".join(tmp_code), opening, closing))
 
 def isolate_rubysets(code: list[str], opening: str, closing: str) -> list[str]:
     new_code = isolate(RubyType.HASPIPE, code, opening, closing)
-    print("nc: ", new_code)
     new_code = isolate(RubyType.NONPIPE, new_code, opening, closing)
     return new_code
 
@@ -72,25 +71,30 @@ def split_code(code: str) -> list[str]:
             r'(<[^<>]*>)', "\n\\1\n", code).splitlines()
             if i != "" ]
 
-def replace_rubies_with_pipe(template: tuple[str, str, str, str, str], code: str):
-    return con.REG_PIPE_OYAMOJI_RUBY.sub(
-        rf"</w:t></w:r>{template[0]}\2{template[1]}\1{template[2]}<w:r><w:t>", code)
+def replace_rubies(ruby_type: RubyType, template: tuple[str, str, str, str, str], code: str):
+    match ruby_type:
+        case RubyType.NONPIPE:
+            pattern = con.REG_KANJI_AND_RUBY
+        case RubyType.HASPIPE:
+            pattern = con.REG_PIPE_OYAMOJI_RUBY
+        case _:
+            return []
+    tmp_code = code_to_list(code)
+    ref_code = tuple(i for i in tmp_code)
+    for i, c in enumerate(ref_code):
+        if con.REG_TAG.match(c) or c == '':
+            continue
+        tmp_code[i] = pattern.sub(
+            rf"{template[4]}{template[0]}\2{template[1]}\1{template[2]}{template[3]}", c)
+    return filter_void_tag("".join(tmp_code), template[3], template[4])
 
-
-def replace_rubies_without_pipe(template: tuple[str, str, str, str, str], code: str):
-    return con.REG_KANJI_AND_RUBY.sub(
-        rf"</w:t></w:r>{template[0]}\2{template[1]}\1{template[2]}<w:r><w:t>", code)
-
-def replace_ruby(base: list[str], template: tuple):
+def replace_ruby(base: list[str], template: tuple) -> list[str]:
     joined = "".join(base)
-    f = con.REG_PIPE_OYAMOJI_RUBY.findall(joined)
-    print(f"findall: {f}")
-    result = replace_rubies_with_pipe(template, joined)
-    result2 = replace_rubies_without_pipe(template, result)
+    result = replace_rubies(RubyType.HASPIPE, template, joined)
+    print(f"result: \t{result}\n")
+    result2 = replace_rubies(RubyType.NONPIPE, template, result)
+    print(f"result2: \t{result2}\n")
     #result3 = con.REG_KEEP_BLACKET.sub(r"《", result2)
-
-    print(f"result: {result2}")
-
     return result2
 
 def make_new_xml(ruby_font: str, code: str) -> str:
