@@ -6,6 +6,7 @@ from . import consts as con
 class RubyType(Enum) :
     HASPIPE = auto()
     NONPIPE = auto()
+    BOUTEN = auto()
 
 def connect_serial_nontag(code: list[str]) -> list[str]:
     tmp_code = tuple(i for i in code)
@@ -34,6 +35,8 @@ def isolate(ruby_type: RubyType, code: list[str], opening: str, closing: str) ->
             pattern = con.REG_KANJI_AND_RUBY_AROUND
         case RubyType.HASPIPE:
             pattern = con.REG_PIPE_OYAMOJI_GET_AROUND
+        case RubyType.BOUTEN:
+            pattern = con.REG_BOUTEN_GET
         case _:
             return []
     ref_code = tuple(i for i in code)
@@ -47,11 +50,14 @@ def isolate(ruby_type: RubyType, code: list[str], opening: str, closing: str) ->
             continue
         tmp_code[i] = pattern.sub(
             rf'{closing}{opening}\1{closing}{opening}', c)
+        if ruby_type == RubyType.BOUTEN:
+            print(tmp_code[i])
     return code_to_list(filter_void_tag("".join(tmp_code), opening, closing))
 
 def isolate_rubysets(code: list[str], opening: str, closing: str) -> list[str]:
     new_code = isolate(RubyType.HASPIPE, code, opening, closing)
     new_code = isolate(RubyType.NONPIPE, new_code, opening, closing)
+    new_code = isolate(RubyType.BOUTEN, new_code, opening, closing)
     return new_code
 
 def convert_basecode(basecode: list[str]) -> list[str]:
