@@ -109,7 +109,7 @@ REG_KANJI = regex.compile(r'[\p{Script=Han}\u30F5]+')
 # パイプ（|）つき親文字にマッチするパターン（例：|親文字《ルビ》）
 REG_PIPE_OYAMOJI = regex.compile(r'(?<=\|)([^|]+)(?=《)')
 REG_PIPE_OYAMOJI_RUBY = regex.compile(r'\|([^|]+)《([^《》]+)》')
-REG_PIPE_OYAMOJI_GET_AROUND = regex.compile(r'(.*)(\|[^|《》]+《[^《》]+》)(.*)')
+REG_PIPE_OYAMOJI_GET_AROUND = regex.compile(r'(\|[^|《》]+《[^《》]+》)')
 # |《にマッチするパターン（《をそのまま出力したい場合）
 REG_KEEP_BLACKET = regex.compile(r'\|《')
 # パイプ（|）にマッチするパターン

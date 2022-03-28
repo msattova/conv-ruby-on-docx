@@ -12,7 +12,6 @@ def connect_serial_nontag(code: list[str]) -> list[str]:
             if c == "" or code[i] == "" :
                 continue
             elif not (con.REG_TAG.match(c) or con.REG_TAG.match(tmp_code[i+1])):
-                print(f"tmp_len: {len(tmp_code)} code_len: {len(code)} now_i: {i}")
                 code[i] = code[i]+code[i+1]
                 code[i+1] = ""
     return [i for i in code if i!=""]
@@ -29,12 +28,10 @@ def isolate(pattern, code, opening, closing) -> list[str]:
     ref_code = tuple(i for i in code)
     tmp_code = [i for i in code]
     for i, c in enumerate(ref_code):
-        print(c)
         if con.REG_TAG.match(c) or c == '':
             continue
         tmp_code[i] = pattern.sub(
             rf'{closing}{opening}\1{closing}{opening}', c)
-    print(f"tmp: {tmp_code}")
     return code_to_list(filter_void_wt("".join(tmp_code), opening, closing))
 
 def isolate_rubysets(code: list[str], opening: str, closing: str) -> list[str]:
@@ -47,7 +44,6 @@ def convert_basecode(basecode: list[str]) -> list[str]:
     for ind, bc in enumerate(i for i in basecode):
         if (con.REG_PIPE.match(bc) or con.REG_OP_SENTENCE.match(bc)) is not None:
             ruby_flag = True
-            print(f'open: {bc}')
         if ruby_flag:
             if (con.REG_CL_SENTENCE.match(bc) or con.REG_OPCL_SENTENCE.match(bc)) is not None:
                 ruby_flag = False
