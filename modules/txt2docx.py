@@ -1,7 +1,11 @@
 
 import re
-
+from enum import Enum,auto
 from . import consts as con
+
+class RubyType(Enum) :
+    HASPIPE = auto()
+    NONPIPE = auto()
 
 def connect_serial_nontag(code: list[str]) -> list[str]:
     tmp_code = tuple(i for i in code)
@@ -24,19 +28,31 @@ def code_to_list(code: str) -> list[str]:
             re.sub(r'(<[^<>]+>)', '\n\\1\n', code).splitlines()
         if i != '']
 
-def isolate(pattern, code, opening, closing) -> list[str]:
+def isolate(ruby_type: RubyType, code: list[str], opening: str, closing: str) -> list[str]:
+    match ruby_type:
+        case RubyType.NONPIPE:
+            pattern = con.REG_KANJI_AND_RUBY_AROUND
+        case RubyType.HASPIPE:
+            pattern = con.REG_PIPE_OYAMOJI_GET_AROUND
+        case _:
+            return []
     ref_code = tuple(i for i in code)
     tmp_code = [i for i in code]
     for i, c in enumerate(ref_code):
         if con.REG_TAG.match(c) or c == '':
+            continue
+        if ruby_type == RubyType.NONPIPE and con.REG_PIPE_OYAMOJI_GET_AROUND.match(c):
+            continue
+        elif ruby_type == RubyType.HASPIPE and con.REG_KANJI_AND_RUBY_AROUND.match(c):
             continue
         tmp_code[i] = pattern.sub(
             rf'{closing}{opening}\1{closing}{opening}', c)
     return code_to_list(filter_void_wt("".join(tmp_code), opening, closing))
 
 def isolate_rubysets(code: list[str], opening: str, closing: str) -> list[str]:
-    new_code = isolate(con.REG_PIPE_OYAMOJI_GET_AROUND, code, opening, closing)
-    new_code = isolate(con.REG_KANJI_AND_RUBY_AROUND, new_code, opening, closing)
+    new_code = isolate(RubyType.HASPIPE, code, opening, closing)
+    print("nc: ", new_code)
+    new_code = isolate(RubyType.NONPIPE, new_code, opening, closing)
     return new_code
 
 def convert_basecode(basecode: list[str]) -> list[str]:

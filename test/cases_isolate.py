@@ -230,3 +230,118 @@ idealcode4 = '''
 </w:r>
 </w:p>
 '''.splitlines()
+
+
+testcode5 = '''
+<w:p w14:paraId="1A318B7D" w14:textId="6C78F7B3" w:rsidR="00EE3670" w:rsidRDefault="00EE3670" w:rsidP="00EE3670">
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+|パイプつき漢字《文章っぽい》のテスト。ついでに漢字《ルビ》もある。
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+パイプつき|漢字《漢字だけ》漢字《ルビ》|パイプつき文字列《文章っぽい》|おまけもある《ながったらしい》文章《たくさんある》のテスト。
+</w:t>
+</w:r>
+</w:p>
+'''.splitlines()
+
+idealcode5 = '''
+<w:p w14:paraId="1A318B7D" w14:textId="6C78F7B3" w:rsidR="00EE3670" w:rsidRDefault="00EE3670" w:rsidP="00EE3670">
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+|パイプつき漢字《文章っぽい》
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+のテスト。ついでに
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+漢字《ルビ》
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+もある。
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+パイプつき
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+|漢字《漢字だけ》
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+漢字《ルビ》
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+|パイプつき文字列《文章っぽい》
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+|おまけもある《ながったらしい》
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+文章《たくさんある》
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+のテスト。
+</w:t>
+</w:r>
+</w:p>
+'''.splitlines()
