@@ -17,35 +17,30 @@ def connect_serial_nontag(code: list[str]) -> list[str]:
                 code[i+1] = ""
     return [i for i in code if i!=""]
 
+def filter_void_wt(code: str, opening: str, closing: str) -> str:
+    return re.sub(f"{opening}{closing}", "", code)
+
+def code_to_list(code: str) -> list[str]:
+    return [i for i in
+            re.sub(r'(<[^<>]+>)', '\n\\1\n', code).splitlines()
+        if i != '']
+
 def isolate(pattern, code, opening, closing) -> list[str]:
-    tmp_code = tuple(i for i in code)
-    new_code = ''
-    for i, c in enumerate(tmp_code):
-        if con.REG_TAG.match(c):
+    ref_code = tuple(i for i in code)
+    tmp_code = [i for i in code]
+    for i, c in enumerate(ref_code):
+        print(c)
+        if con.REG_TAG.match(c) or c == '':
             continue
-        result = pattern.findall(c)
-        if result != ():
-            new_code = ''
-            for m in result:
-                if m[0] != '':
-                    new_code += f'{m[0]}\n'
-                    if m[1] != '':
-                        new_code += f'{closing}\n{opening}\n'
-                if m[1] != '':
-                    new_code += f'{m[1]}\n'
-                    if m[2] != '':
-                        new_code += f'{closing}\n{opening}\n'
-                if m[2] != '':
-                    new_code += f'{m[2]}\n'
-            code[i] = new_code
-        else:
-            continue
-    return [ j for j in ("".join([f"{i}\n" for i in code])).splitlines() if j != '']
+        tmp_code[i] = pattern.sub(
+            rf'{closing}{opening}\1{closing}{opening}', c)
+    print(f"tmp: {tmp_code}")
+    return code_to_list(filter_void_wt("".join(tmp_code), opening, closing))
 
 def isolate_rubysets(code: list[str], opening: str, closing: str) -> list[str]:
-    code = isolate(con.REG_PIPE_OYAMOJI_GET_AROUND, code, opening, closing)
-    code = isolate(con.REG_KANJI_AND_RUBY_AROUND, code, opening, closing)
-    return code
+    new_code = isolate(con.REG_PIPE_OYAMOJI_GET_AROUND, code, opening, closing)
+    new_code = isolate(con.REG_KANJI_AND_RUBY_AROUND, new_code, opening, closing)
+    return new_code
 
 def convert_basecode(basecode: list[str]) -> list[str]:
     ruby_flag = False
