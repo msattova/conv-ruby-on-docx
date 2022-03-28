@@ -1,5 +1,6 @@
 import os
-import glob
+import platform
+import subprocess
 import zipfile
 import shutil
 from pathlib import Path
@@ -48,14 +49,16 @@ class FileProc:
         with open(document, mode='w', encoding='utf-8') as f:
             f.write(new_code)
 
-    def _make_docx(self, output: str, file_list: list[str]):
-        with zipfile.ZipFile(output, 'w',
+    def _make_docx(self, file_list: list[str]):
+        with zipfile.ZipFile(self.output.name, 'w',
                              compression=zipfile.ZIP_STORED,
                              compresslevel=0) as zf:
             for f in file_list:
                 filepath = os.path.join('.', f)
                 zf.write(filepath)
                 os.remove(filepath)
+        if platform.system() == 'Darwin':
+            subprocess.run(f'zip --delete {self.output.name} "*__MACOSX*" "*.DS_Store"')
 
     def _delete_tempdir(self, extract_dir: str, dirs: set[str]):
         for dd in dirs:
