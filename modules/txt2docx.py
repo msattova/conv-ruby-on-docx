@@ -66,11 +66,6 @@ def convert_basecode(basecode: list[str]) -> list[str]:
                 basecode[ind] = ''
     return connect_serial_nontag([i for i in basecode if i!= ''])
 
-def split_code(code: str) -> list[str]:
-    return [i for i in re.sub(
-            r'(<[^<>]*>)', "\n\\1\n", code).splitlines()
-            if i != "" ]
-
 def replace_rubies(ruby_type: RubyType, template: tuple[str, str, str, str, str], code: str):
     match ruby_type:
         case RubyType.NONPIPE:
@@ -91,16 +86,16 @@ def replace_rubies(ruby_type: RubyType, template: tuple[str, str, str, str, str]
 def replace_ruby(base: list[str], template: tuple) -> list[str]:
     joined = "".join(base)
     result = replace_rubies(RubyType.HASPIPE, template, joined)
-    print(f"result: \t{result}\n")
+    #print(f"result: \t{result}\n")
     result2 = replace_rubies(RubyType.NONPIPE, template, result)
-    print(f"result2: \t{result2}\n")
+    #print(f"result2: \t{result2}\n")
     #result3 = con.REG_KEEP_BLACKET.sub(r"《", result2)
     return result2
 
 def make_new_xml(ruby_font: str, code: str) -> str:
     """out.docx内のdocument.xmlに書き込む文字列生成"""
     template = con.make_template(ruby_font)
-    each_lines = split_code(code)  # xmlを一行づつ分割
+    each_lines = code_to_list(code)  # xmlを一行づつ分割
     each_lines = convert_basecode(each_lines)
     each_lines = isolate_rubysets(each_lines, template[3], template[4])
     #print(each_lines)
