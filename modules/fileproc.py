@@ -70,5 +70,5 @@ class FileProc:
                 self.inputfile.as_posix(),
                 self.extract_dir.as_posix())
         self._from_read_to_write(self.docxml.as_posix())
-        self._make_docx(self.output.as_posix(), self.files)
+        self._make_docx(self.files)
         self._delete_tempdir(self.extract_dir.as_posix(), self.dirs)
