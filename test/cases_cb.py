@@ -374,3 +374,137 @@ idealcode4 = '''
 </w:r>
 </w:p>
 '''.splitlines()
+
+
+testcode5 = '''
+<w:p w14:paraId="1A318B7D" w14:textId="6C78F7B3" w:rsidR="00EE3670" w:rsidRDefault="00EE3670" w:rsidP="00EE3670">
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t xml:space="preserve">
+傍点がある《《場合について》》テスト
+</w:t>
+</w:r>
+<w:r w:rsidR="00552D32">
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+《《
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+さらにテスト
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+》》
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+普通のやつ漢字《おまけ》。
+</w:t>
+</w:r>
+</w:p>
+'''.splitlines()
+
+idealcode5 = '''
+<w:p w14:paraId="1A318B7D" w14:textId="6C78F7B3" w:rsidR="00EE3670" w:rsidRDefault="00EE3670" w:rsidP="00EE3670">
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t xml:space="preserve">
+傍点がある《《場合について》》テスト
+</w:t>
+</w:r>
+<w:r w:rsidR="00552D32">
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+《《さらにテスト》》
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+普通のやつ漢字《おまけ》。
+</w:t>
+</w:r>
+</w:p>
+'''.splitlines()
+
+
+testcode6 = '''
+<w:p w14:paraId="1A318B7D" w14:textId="6C78F7B3" w:rsidR="00EE3670" w:rsidRDefault="00EE3670" w:rsidP="00EE3670">
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t xml:space="preserve">
+文章が途中でなんか《《途切れ
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+てる感じ》》
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+ルビの場合についても|やっておく
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+ことにする《チェック》。
+</w:t>
+</w:r>
+</w:p>
+'''.splitlines()
+
+idealcode6 = '''
+<w:p w14:paraId="1A318B7D" w14:textId="6C78F7B3" w:rsidR="00EE3670" w:rsidRDefault="00EE3670" w:rsidP="00EE3670">
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t xml:space="preserve">
+文章が途中でなんか《《途切れてる感じ》》
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+ルビの場合についても|やっておくことにする《チェック》。
+</w:t>
+</w:r>
+</w:p>
+'''.splitlines()

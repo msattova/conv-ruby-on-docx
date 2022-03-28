@@ -8,7 +8,7 @@ SPLIT_SYMBOL: str = '~'      # 置換処理時、文字列を分割するため�
 SEPARATE_SYMBOL = '!@sep$@'  # 元のテキストをリストとして取得する際に利用する分割用文字列
 
 
-def make_template(font="") -> tuple:
+def make_template(font="", emtype="dot") -> tuple:
     if font == '':
         pf = platform.system()
         if pf == 'Windows':
@@ -51,7 +51,12 @@ def make_template(font="") -> tuple:
          r'<w:rFonts w:hint="eastAsia"/>',
          r'</w:rPr><w:t>'), # 3 close
         # ルビ振り処理対象外の余った文字列をここに
-        (r'</w:t>', r'</w:r>'))) # 4 close
+        (r'</w:t>', r'</w:r>'), # 4 close
+        # 傍点表示用
+        (r'<w:r><w:rPr>',
+         r'<w:rFonts w:hint="eastAsia"/>',
+         rf'<w:em w:val="{emtype}"/>',
+         r'</w:rPr><w:t>') ))  # 5 close
 
 def make_rubyset(template: tuple[str, str, str, str, str],
                  furigana: str, kanji: str) -> str:
@@ -118,6 +123,6 @@ REG_PIPE = regex.compile(r'\|')
 REG_OP_SENTENCE = regex.compile(r'[^《》]*《')
 REG_CL_SENTENCE = regex.compile(r'》[^《》]*')
 REG_OPCL_SENTENCE = regex.compile(r'[^《》]*《[^《》]*》[^《》]*')
-REG_BOUTEN_OPCL = regex.compile(r'《《(?:(?!《《|》》).)+》》')
-REG_BOUTEN_OP = regex.compile(r'《《')
-REG_BOUTEN_CL = regex.compile(r'》》')
+REG_BOUTEN_OPCL = regex.compile(r'.*《《(?:(?!《《|》》).)+》》.*')
+REG_BOUTEN_OP = regex.compile(r'.*《《.*')
+REG_BOUTEN_CL = regex.compile(r'.*》》.*')

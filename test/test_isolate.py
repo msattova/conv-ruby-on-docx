@@ -7,7 +7,8 @@ from test.cases_isolate import (testcode, idealcode,
                                 testcode3, idealcode3,
                                 testcode4, idealcode4,
                                 testcode5, idealcode5,
-                                testcode6, idealcode6)
+                                testcode6, idealcode6,
+                                testcode7, idealcode7)
 
 def test_isolate():
     template = con.make_template()
@@ -23,6 +24,8 @@ def test_isolate_rubyset():
     return_code4 = t2d.isolate_rubysets(testcode4, template[3], template[4])
     return_code5 = t2d.isolate_rubysets(testcode5, template[3], template[4])
     return_code6 = t2d.isolate_rubysets(testcode6, template[3], template[4])
+    return_code7 = t2d.isolate_rubysets(testcode7, template[3], template[4])
+
 
     assert "".join(return_code) == "".join(idealcode)
     assert "".join(return_code2) == "".join(idealcode2)
@@ -30,6 +33,8 @@ def test_isolate_rubyset():
     assert "".join(return_code4) == "".join(idealcode4)
     assert "".join(return_code5) == "".join(idealcode5)
     assert "".join(return_code6) == "".join(idealcode6)
+    assert "".join(return_code7) == "".join(idealcode7)
+
 
 def test_code_to_list():
     return_code = t2d.code_to_list("".join(testcode))

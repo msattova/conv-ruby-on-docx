@@ -58,11 +58,16 @@ def convert_basecode(basecode: list[str]) -> list[str]:
     ruby_flag = False
     ref_code = tuple(i for i in basecode)
     for ind, bc in enumerate(i for i in ref_code):
-        if (con.REG_PIPE.match(bc) or con.REG_OP_SENTENCE.match(bc) or con.REG_BOUTEN_OP.search(bc)) is not None:
+        if ((con.REG_PIPE.search(bc)
+                or con.REG_OP_SENTENCE.search(bc)
+                or con.REG_BOUTEN_OP.search(bc)) is not None):
             ruby_flag = True
         if ruby_flag:
             print(bc)
-            if (con.REG_CL_SENTENCE.match(bc) or con.REG_OPCL_SENTENCE.match(bc) or con.REG_BOUTEN_CL.search(bc) or con.REG_BOUTEN_OPCL.search(bc)) is not None:
+            if ((con.REG_CL_SENTENCE.search(bc)
+                    or con.REG_OPCL_SENTENCE.search(bc)
+                    or con.REG_BOUTEN_CL.search(bc)
+                    or con.REG_BOUTEN_OPCL.search(bc)) is not None):
                 ruby_flag = False
             elif con.REG_TAG.match(bc) is not None:
                 basecode[ind] = ''
@@ -101,7 +106,6 @@ def make_new_xml(ruby_font: str, code: str) -> str:
     basecode = code_to_list(code)  # xmlを一行づつ分割
     each_lines = convert_basecode(basecode)
     each_lines = isolate_rubysets(each_lines, template[3], template[4])
-    #print(each_lines)
     wrt = replace_ruby(each_lines, template)
 
     return wrt

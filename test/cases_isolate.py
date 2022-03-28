@@ -371,3 +371,29 @@ idealcode6 = '''
 </w:r>
 </w:p>
 '''.splitlines()
+
+testcode7 = '''
+<w:p w14:paraId="1A318B7D" w14:textId="6C78F7B3" w:rsidR="00EE3670" w:rsidRDefault="00EE3670" w:rsidP="00EE3670">
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+無視すべき奴|《いぐのあみー》のテスト。
+</w:t>
+</w:r>
+</w:p>
+'''.splitlines()
+
+idealcode7 = '''
+<w:p w14:paraId="1A318B7D" w14:textId="6C78F7B3" w:rsidR="00EE3670" w:rsidRDefault="00EE3670" w:rsidP="00EE3670">
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+無視すべき奴|《いぐのあみー》のテスト。
+</w:t>
+</w:r>
+</w:p>
+'''.splitlines()
