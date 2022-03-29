@@ -51,8 +51,6 @@ def isolate(ruby_type: RubyType, code: list[str], opening: str, closing: str) ->
             continue
         tmp_code[i] = pattern.sub(
             rf'{closing}{opening}\1{closing}{opening}', c)
-        if ruby_type == RubyType.BOUTEN:
-            print(tmp_code[i])
     return code_to_list(filter_void_tag("".join(tmp_code), opening, closing))
 
 def isolate_rubysets(code: list[str], opening: str, closing: str) -> list[str]:
@@ -70,7 +68,7 @@ def convert_basecode(basecode: list[str]) -> list[str]:
                 or con.REG_BOUTEN_OP.search(bc)) is not None):
             ruby_flag = True
         if ruby_flag:
-            print(bc)
+            #print(bc)
             if ((con.REG_CL_SENTENCE.search(bc)
                     or con.REG_OPCL_SENTENCE.search(bc)
                     or con.REG_BOUTEN_CL.search(bc)
@@ -78,7 +76,7 @@ def convert_basecode(basecode: list[str]) -> list[str]:
                 ruby_flag = False
             elif con.REG_TAG.match(bc) is not None:
                 basecode[ind] = ''
-    print(basecode)
+    #print(basecode)
     return connect_serial_nontag([i for i in basecode if i!= ''])
 
 def replace_rubies(ruby_type: RubyType, template: tuple[str, str, str, str, str], code: str):
@@ -114,9 +112,14 @@ def replace_ruby(base: list[str], template: tuple) -> list[str]:
     keep_proc = con.REG_KEEP_BLACKET.sub(r"《", bouten_proc)
     return keep_proc
 
-def make_new_xml(ruby_font: str, code: str) -> str:
+def make_new_xml(ruby_font: str, em_style: str, code: str) -> str:
     """out.docx内のdocument.xmlに書き込む文字列生成"""
-    template = con.make_template(ruby_font)
+    match em_style:
+        case 'dot' | 'comma':
+            pass
+        case _:
+            em_style = 'dot'
+    template = con.make_template(ruby_font, em_style)
     basecode = code_to_list(code)  # xmlを一行づつ分割
     each_lines = convert_basecode(basecode)
     each_lines = isolate_rubysets(each_lines, template[3], template[4])

@@ -15,6 +15,7 @@ class FileProc:
     inputfile: Path
     output: Path
     ruby_font: str
+    em_style: str
 
     def __post_init__(self):
         self.template = self.template.resolve()
@@ -44,7 +45,7 @@ class FileProc:
         with open(document, mode='r', encoding='utf-8') as f:
             s = f.read()
 
-        new_code = t2d.make_new_xml(self.ruby_font, s)
+        new_code = t2d.make_new_xml(self.ruby_font, self.em_style, s)
 
         with open(document, mode='w', encoding='utf-8') as f:
             f.write(new_code)

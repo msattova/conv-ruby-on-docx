@@ -14,4 +14,8 @@ class CmdArg:
                                  nargs='?', type=str,
                                  default='',
                                  help='ルビのフォント')
+        self.parser.add_argument('-e', '--em',
+                                 nargs='?', type=str,
+                                 default='dot',
+                                 help='傍点のスタイル（dotかcommaで指定。デフォルトはdot）')
         self.args = self.parser.parse_args()
