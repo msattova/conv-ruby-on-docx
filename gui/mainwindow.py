@@ -1,7 +1,7 @@
 
 from pathlib import Path
-from PySide2.QtCore import QSize, Qt
-from PySide2.QtWidgets import (QWidget,
+from PySide6.QtCore import QSize, Qt
+from PySide6.QtWidgets import (QWidget,
                                QMainWindow,
                                QLineEdit,
                                QLabel,
@@ -13,7 +13,6 @@ from PySide2.QtWidgets import (QWidget,
 
 
 import modules.fileproc as fpc
-
 
 class MainWindow(QMainWindow):
     def __init__(self):
