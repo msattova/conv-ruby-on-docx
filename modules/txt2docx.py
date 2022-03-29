@@ -114,7 +114,9 @@ def replace_ruby(base: list[str], template: tuple) -> list[str]:
 def make_new_xml(ruby_font: str, em_style: str, code: str) -> str:
     """out.docx内のdocument.xmlに書き込む文字列生成"""
     match em_style:
-        case 'dot' | 'comma':
+        case 'dot':
+            pass
+        case 'comma':
             pass
         case _:
             em_style = 'dot'
