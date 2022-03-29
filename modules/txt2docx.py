@@ -1,4 +1,5 @@
 
+from dataclasses import replace
 import re
 from enum import Enum,auto
 from . import consts as con
@@ -86,6 +87,8 @@ def replace_rubies(ruby_type: RubyType, template: tuple[str, str, str, str, str]
             pattern = con.REG_KANJI_AND_RUBY
         case RubyType.HASPIPE:
             pattern = con.REG_PIPE_OYAMOJI_RUBY
+        case RubyType.BOUTEN:
+            pattern = con.REG_BOUTEN_GET_INSIDE
         case _:
             return []
     tmp_code = code_to_list(code)
@@ -93,18 +96,23 @@ def replace_rubies(ruby_type: RubyType, template: tuple[str, str, str, str, str]
     for i, c in enumerate(ref_code):
         if con.REG_TAG.match(c) or c == '':
             continue
+        if ruby_type == RubyType.BOUTEN:
+            tmp_code[i] = pattern.sub(
+                rf"{template[4]}{template[5]}\1{template[4]}{template[3]}", c)
+            continue
         tmp_code[i] = pattern.sub(
             rf"{template[4]}{template[0]}\2{template[1]}\1{template[2]}{template[3]}", c)
     return filter_void_tag("".join(tmp_code), template[3], template[4])
 
 def replace_ruby(base: list[str], template: tuple) -> list[str]:
     joined = "".join(base)
-    result = replace_rubies(RubyType.HASPIPE, template, joined)
+    haspipe_proc = replace_rubies(RubyType.HASPIPE, template, joined)
     #print(f"result: \t{result}\n")
-    result2 = replace_rubies(RubyType.NONPIPE, template, result)
+    nonpipe_proc = replace_rubies(RubyType.NONPIPE, template, haspipe_proc)
+    bouten_proc = replace_rubies(RubyType.BOUTEN, template, nonpipe_proc)
     #print(f"result2: \t{result2}\n")
-    result3 = con.REG_KEEP_BLACKET.sub(r"《", result2)
-    return result3
+    keep_proc = con.REG_KEEP_BLACKET.sub(r"《", bouten_proc)
+    return keep_proc
 
 def make_new_xml(ruby_font: str, code: str) -> str:
     """out.docx内のdocument.xmlに書き込む文字列生成"""

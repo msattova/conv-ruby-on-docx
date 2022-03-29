@@ -1,7 +1,7 @@
 import platform
 
 
-def make_template(font="") -> tuple:
+def make_template(font="", emtype="dot") -> tuple:
     if font == '':
         pf = platform.system()
         if pf == 'Windows':
@@ -44,7 +44,13 @@ def make_template(font="") -> tuple:
          r'<w:rFonts w:hint="eastAsia"/>',
          r'</w:rPr><w:t>'),  # 3 close
         # ルビ振り処理対象外の余った文字列をここに
-        (r'</w:t>', r'</w:r>')))  # 4 close
+        (r'</w:t>', r'</w:r>'),  # 4 close
+        # 傍点表示用
+        (r'<w:r><w:rPr>',
+         r'<w:rFonts w:hint="eastAsia"/>',
+         rf'<w:em w:val="{emtype}"/>',
+         r'</w:rPr><w:t>')))  # 5 close
+
 
 template = make_template()
 
@@ -143,11 +149,12 @@ testcode3 = '''
 <w:rFonts w:hint="eastAsia"/>
 </w:rPr>
 <w:t>
-無視すべき奴|《いぐのあみー》のテスト。
+残す奴|《きーぷみー》のテスト。
 </w:t>
 </w:r>
 </w:p>
 '''.splitlines()
+
 
 idealcode3 = '''
 <w:p w14:paraId="1A318B7D" w14:textId="6C78F7B3" w:rsidR="00EE3670" w:rsidRDefault="00EE3670" w:rsidP="00EE3670">
@@ -156,7 +163,165 @@ idealcode3 = '''
 <w:rFonts w:hint="eastAsia"/>
 </w:rPr>
 <w:t>
-無視すべき奴《いぐのあみー》のテスト。
+残す奴《きーぷみー》のテスト。
+</w:t>
+</w:r>
+</w:p>
+'''.splitlines()
+
+
+testcode4 = '''
+<w:p w14:paraId="1A318B7D" w14:textId="6C78F7B3" w:rsidR="00EE3670" w:rsidRDefault="00EE3670" w:rsidP="00EE3670">
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+傍点を
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+《《振るべき文字列》》
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+のテスト。
+</w:t>
+</w:r>
+</w:p>
+'''.splitlines()
+
+
+idealcode4 = rf'''
+<w:p w14:paraId="1A318B7D" w14:textId="6C78F7B3" w:rsidR="00EE3670" w:rsidRDefault="00EE3670" w:rsidP="00EE3670">
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+傍点を
+{template[4]}
+{template[5]}
+振るべき文字列
+{template[4]}
+{template[3]}
+のテスト。
+</w:t>
+</w:r>
+</w:p>
+'''.splitlines()
+
+
+testcode5 = '''
+<w:p w14:paraId="1A318B7D" w14:textId="6C78F7B3" w:rsidR="00EE3670" w:rsidRDefault="00EE3670" w:rsidP="00EE3670">
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+傍点《ぼうてん》
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+を
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+《《振るべき文字列》》
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+の
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+|テスト《しけん》
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+。
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+残す奴|《きーぷみー》のテスト。
+</w:t>
+</w:r>
+</w:p>
+'''.splitlines()
+
+
+idealcode5 = rf'''
+<w:p w14:paraId="1A318B7D" w14:textId="6C78F7B3" w:rsidR="00EE3670" w:rsidRDefault="00EE3670" w:rsidP="00EE3670">
+{template[0]}
+ぼうてん
+{template[1]}
+傍点
+{template[2]}
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+を
+{template[4]}
+{template[5]}
+振るべき文字列
+{template[4]}
+{template[3]}
+の
+</w:t>
+</w:r>
+{template[0]}
+しけん
+{template[1]}
+テスト
+{template[2]}
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+。
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+残す奴《きーぷみー》のテスト。
 </w:t>
 </w:r>
 </w:p>
