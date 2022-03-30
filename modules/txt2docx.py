@@ -9,25 +9,28 @@ class RubyType(Enum) :
     BOUTEN = auto()
 
 def connect_serial_nontag(code: list[str]) -> list[str]:
-    tmp_code = tuple(i for i in code)
-    for i, c in enumerate(tmp_code):
-        if len(code) < (i+1):
+    ref_code = tuple(i for i in code if i != '')
+    for i, c in enumerate(ref_code):
+        if len(code) <= (i+1):
             break
         else:
-            if c == "" or code[i] == "" :
+            if code[i] == "" :
                 continue
-            elif not (con.REG_TAG.match(c) or con.REG_TAG.match(tmp_code[i+1])):
-                code[i] = code[i]+code[i+1]
+            elif not (con.REG_TAG.match(c) or con.REG_TAG.match(ref_code[i+1])):
+                code[i] = f"{code[i]}{code[i+1]}"
                 code[i+1] = ""
-    return [i for i in code if i!=""]
+    return [i for i in code if i != ""]
 
 def filter_void_tag(code: str, opening: str, closing: str) -> str:
-    return re.sub(f"{opening}{closing}", "", code)
+    # return re.sub(f"{opening}{closing}", "", code)
+    return code.replace(f"{opening}{closing}", "")
+
 
 def code_to_list(code: str) -> list[str]:
+    """XMLをタグごと、テキスト文字列ごとに分割してリストに"""
     return [i for i in
             re.sub(r'(<[^<>]+>)', '\n\\1\n', code).splitlines()
-        if i != '']
+            if i != '']
 
 def isolate(ruby_type: RubyType, code: list[str], opening: str, closing: str) -> list[str]:
     match ruby_type:
@@ -39,14 +42,14 @@ def isolate(ruby_type: RubyType, code: list[str], opening: str, closing: str) ->
             pattern = con.REG_BOUTEN_GET
         case _:
             return []
-    ref_code = tuple(i for i in code)
+    #ref_code = tuple(i for i in code)
     tmp_code = [i for i in code]
-    for i, c in enumerate(ref_code):
+    for i, c in enumerate(i for i in code):
         if con.REG_TAG.match(c) or c == '':
             continue
-        if ruby_type == RubyType.NONPIPE and con.REG_PIPE_OYAMOJI_GET_AROUND.match(c):
+        if ruby_type is RubyType.NONPIPE and con.REG_PIPE_OYAMOJI_GET_AROUND.match(c):
             continue
-        elif ruby_type == RubyType.HASPIPE and con.REG_KANJI_AND_RUBY_AROUND.match(c):
+        elif ruby_type is RubyType.HASPIPE and con.REG_KANJI_AND_RUBY_AROUND.match(c):
             continue
         tmp_code[i] = pattern.sub(
             rf'{closing}{opening}\1{closing}{opening}', c)
@@ -60,8 +63,8 @@ def isolate_rubysets(code: list[str], opening: str, closing: str) -> list[str]:
 
 def convert_basecode(basecode: list[str]) -> list[str]:
     ruby_flag = False
-    ref_code = tuple(i for i in basecode)
-    for ind, bc in enumerate(i for i in ref_code):
+    #ref_code = tuple(i for i in basecode)
+    for ind, bc in enumerate(i for i in basecode):
         if ((con.REG_PIPE.search(bc)
                 or con.REG_OP_SENTENCE.search(bc)
                 or con.REG_BOUTEN_OP.search(bc)) is not None):
@@ -74,11 +77,14 @@ def convert_basecode(basecode: list[str]) -> list[str]:
                     or con.REG_BOUTEN_OPCL.search(bc)) is not None):
                 ruby_flag = False
             elif con.REG_TAG.match(bc) is not None:
+                if bc == '<w:tab/>':
+                    basecode[ind] = '\t'
+                    continue
                 basecode[ind] = ''
     #print(basecode)
     return connect_serial_nontag([i for i in basecode if i!= ''])
 
-def replace_rubies(ruby_type: RubyType, template: tuple[str, str, str, str, str], code: str):
+def replace_rubies(ruby_type: RubyType, template: tuple[str, str, str, str, str, str], code: str):
     match ruby_type:
         case RubyType.NONPIPE:
             pattern = con.REG_KANJI_AND_RUBY
@@ -87,18 +93,33 @@ def replace_rubies(ruby_type: RubyType, template: tuple[str, str, str, str, str]
         case RubyType.BOUTEN:
             pattern = con.REG_BOUTEN_GET_INSIDE
         case _:
-            return []
+            return ''
     tmp_code = code_to_list(code)
-    ref_code = tuple(i for i in tmp_code)
-    for i, c in enumerate(ref_code):
+    #ref_code = tuple(i for i in tmp_code)
+    for i, c in enumerate(i for i in tmp_code):
         if con.REG_TAG.match(c) or c == '':
             continue
-        if ruby_type == RubyType.BOUTEN:
+        if ruby_type is RubyType.BOUTEN:
             tmp_code[i] = pattern.sub(
                 rf"{template[4]}{template[5]}\1{template[4]}{template[3]}", c)
             continue
         tmp_code[i] = pattern.sub(
             rf"{template[4]}{template[0]}\2{template[1]}\1{template[2]}{template[3]}", c)
+    return filter_void_tag("".join(tmp_code), template[3], template[4])
+
+def replace_tabchar(template, code: str) -> str:
+    just_before_tags = []
+    tmp_code = code_to_list(code)
+    for i, c in enumerate(tmp_code):
+        if con.REG_TAG.match(c) is not None:
+            if c == '</w:r>' or c == '</w:t>':
+                just_before_tags = []
+                continue
+            just_before_tags.append(c)
+        if '\t' in c:
+            print('hit:', c)
+            tmp_code[i] = c.replace('\t', f'{template[4]}<w:r><w:tab/></w:r>{"".join(just_before_tags)}')
+            print(tmp_code[i].replace('\t', 'tab'))
     return filter_void_tag("".join(tmp_code), template[3], template[4])
 
 def replace_ruby(base: list[str], template: tuple) -> list[str]:
@@ -107,8 +128,11 @@ def replace_ruby(base: list[str], template: tuple) -> list[str]:
     #print(f"result: \t{result}\n")
     nonpipe_proc = replace_rubies(RubyType.NONPIPE, template, haspipe_proc)
     bouten_proc = replace_rubies(RubyType.BOUTEN, template, nonpipe_proc)
+    tab_proc = replace_tabchar(template, bouten_proc)
     #print(f"result2: \t{result2}\n")
-    keep_proc = con.REG_KEEP_BLACKET.sub(r"《", bouten_proc)
+    #keep_proc = con.REG_KEEP_BLACKET.sub(r"《", bouten_proc)
+    keep_proc = tab_proc.replace(r'|《', '《')
+    #tab_proc = keep_proc.replace('\t', f'{template[4]}<w:r><w:tab/></w:r>{template[3]}')
     return keep_proc
 
 def make_new_xml(ruby_font: str, em_style: str, code: str) -> str:

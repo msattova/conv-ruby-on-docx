@@ -4,14 +4,15 @@ import platform
 def make_template(font="", emtype="dot") -> tuple:
     if font == '':
         pf = platform.system()
-        if pf == 'Windows':
-            font = 'ＭＳ 明朝'
-        elif pf == 'Darwin':
-            font = 'ヒラギノ明朝 ProN '
-        elif pf == 'Linux':  # Linux環境の場合はOSごとに標準でインストールされてるフォントが違うので要改善
-            font = 'Noto Serif CJK JP'
-        else:  # その他の結果が出た場合
-            font = 'Noto Serif CJK JP'
+        match pf:
+            case 'Windows':
+                font = 'ＭＳ 明朝'
+            case 'Darwin':
+                font = 'ヒラギノ明朝 ProN '
+            case 'Linux':  # Linux環境の場合はOSごとに標準でインストールされてるフォントが違うので要改善
+                font = 'Noto Serif CJK JP'
+            case _:
+                font = 'Noto Serif CJK JP'
     return tuple(''.join(s) for s in (
         (r'<w:r>', r'<w:ruby>', r'<w:rubyPr>',
          r'<w:rubyAlign w:val="distributeSpace"/>',
@@ -50,7 +51,6 @@ def make_template(font="", emtype="dot") -> tuple:
          r'<w:rFonts w:hint="eastAsia"/>',
          rf'<w:em w:val="{emtype}"/>',
          r'</w:rPr><w:t>')))  # 5 close
-
 
 template = make_template()
 
@@ -322,6 +322,72 @@ idealcode5 = rf'''
 </w:rPr>
 <w:t>
 残す奴《きーぷみー》のテスト。
+</w:t>
+</w:r>
+</w:p>
+'''.splitlines()
+
+
+testcode6 = '''
+<w:p w14:paraId="1A318B7D" w14:textId="6C78F7B3" w:rsidR="00EE3670" w:rsidRDefault="00EE3670" w:rsidP="00EE3670">
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+たくさんの|《きーぷみー》|《きーぷみー》|《きーぷみー》|《きーぷみー》。
+</w:t>
+</w:r>
+</w:p>
+'''.splitlines()
+
+
+idealcode6 = '''
+<w:p w14:paraId="1A318B7D" w14:textId="6C78F7B3" w:rsidR="00EE3670" w:rsidRDefault="00EE3670" w:rsidP="00EE3670">
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+たくさんの《きーぷみー》《きーぷみー》《きーぷみー》《きーぷみー》。
+</w:t>
+</w:r>
+</w:p>
+'''.splitlines()
+
+testcode7 = '''
+<w:p w14:paraId="1A318B7D" w14:textId="6C78F7B3" w:rsidR="00EE3670" w:rsidRDefault="00EE3670" w:rsidP="00EE3670">
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t xml:space="preserve">
+間になんか《《タブ文字\tが挟まっている》》奴
+</w:t>
+</w:r>
+</w:p>
+'''
+
+idealcode7 = f'''
+<w:p w14:paraId="1A318B7D" w14:textId="6C78F7B3" w:rsidR="00EE3670" w:rsidRDefault="00EE3670" w:rsidP="00EE3670">
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t xml:space="preserve">
+間になんか
+{template[4]}
+{template[5]}
+タブ文字
+{template[4]}
+<w:r>
+<w:tab/>
+</w:r>
+{template[5]}
+が挟まっている
+{template[4]}
+{template[3]}
+奴
 </w:t>
 </w:r>
 </w:p>
