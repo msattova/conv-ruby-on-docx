@@ -440,3 +440,25 @@ idealcode8 = '''
 </w:r>
 </w:p>
 '''.splitlines()
+
+
+testcode9 = '''
+<w:p w14:paraId="1A318B7D" w14:textId="6C78F7B3" w:rsidR="00EE3670" w:rsidRDefault="00EE3670" w:rsidP="00EE3670">
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t xml:space="preserve">
+|括弧が《なんか《《二重になってる感じ》》の奴》
+</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rFonts w:hint="eastAsia"/>
+</w:rPr>
+<w:t>
+ルビの場合についても|やって《《おくこと》》にする《チェック》。
+</w:t>
+</w:r>
+</w:p>
+'''.splitlines()
