@@ -55,32 +55,16 @@ def make_template(font="", emtype="dot") -> tuple:
          rf'<w:em w:val="{emtype}"/>',
          r'</w:rPr><w:t>') ))  # 5 close
 
-# <w:r>タグで囲まれた文字列（<w:r>を含む）を取得するパターン
-# make_new_xml内で1回しか利用されないのでコンパイルしない
-REG_SURROUND_WR: Final[str] = r'<w:r(?:\s[^<>]+)?>(?:(?!<w:r>|</w:r>).)*</w:r>'
-REG_SURROUND_WR_WITH_ATTR: Final[str] = r'<w:r\s[^<>]+>(?:(?!<w:r>|</w:r>).)*</w:r>'
-# 《》内の文字列取得用パターン
-REG_RUBY = regex.compile(r'(?<=《).*?(?=》)')
-# マッチさせたいタグ名を格納するタプル
-TAGS: Final[tuple] = ('w:r', 'w:t', '.+')
-# タグで囲まれた文字列にマッチするパターン
-REG_TAG_OPCL = { tag: regex.compile(r'<{tag}>(?:(?!<{tag}>|</{tag}>).)*</{tag}>') for tag in TAGS}
 # タグ単体（開始or終了）にマッチするパターン
 REG_TAG = regex.compile(r'<[^<>]*>')
-# w:rタグの開始or終了にマッチ
-REG_WR = regex.compile(r'</?w:r(\s[^<>]+)?>')
+REG_TAG_GET = regex.compile(r'(<[^<>]+>)')
 # 漢字《かんじ》にマッチするパターン
 REG_KANJI_AND_RUBY = regex.compile(r'([\p{Script=Han}\u30F5]+)《([^《》]+)》')
 REG_KANJI_AND_RUBY_AROUND = regex.compile(
     r'([\p{Script=Han}\u30F5]+《[^《》]*?》)')
-# 漢字にだけマッチするパターン
-REG_KANJI = regex.compile(r'[\p{Script=Han}\u30F5]+')
 # パイプ（|）つき親文字にマッチするパターン（例：|親文字《ルビ》）
-REG_PIPE_OYAMOJI = regex.compile(r'(?<=\|)([^|]+)(?=《)')
 REG_PIPE_OYAMOJI_RUBY = regex.compile(r'\|([^|]+)《([^《》]+)》')
 REG_PIPE_OYAMOJI_GET_AROUND = regex.compile(r'(\|[^|《》]+《[^《》]+》)')
-# |《にマッチするパターン（《をそのまま出力したい場合）（正規表現でなくて良い）
-REG_KEEP_BLACKET = regex.compile(r'\|《')
 # パイプ（|）にマッチするパターン
 REG_PIPE = regex.compile(r'\|')
 # OP：'文字列《'にマッチ。  /  CL：'》文字列'にマッチ

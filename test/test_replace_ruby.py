@@ -20,7 +20,7 @@ def test_replace_ruby():
     return_code6 = t2d.replace_ruby(testcode6, template)
     return_code7 = t2d.replace_ruby(testcode7, template)
     print(f"ret: {return_code7}")
-    print(f"ide: {idealcode7}")
+    print(f"ide: {''.join(idealcode7)}")
 
     assert return_code == "".join(idealcode)
     assert return_code2 == "".join(idealcode2)
