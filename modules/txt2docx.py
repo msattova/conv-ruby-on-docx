@@ -34,7 +34,6 @@ def connect_serial_nontag(code: list[str]) -> list[str]:
     return [i for i in code if i != ""]
 
 def filter_void_tag(code: str, opening: str, closing: str) -> str:
-    # return re.sub(f"{opening}{closing}", "", code)
     return code.replace(f"{opening}{closing}", "")
 
 
@@ -84,7 +83,6 @@ def convert_basecode(basecode: list[str]) -> list[str]:
                 or REG_BOUTEN_OP.search(bc)):
             ruby_flag = True
         if ruby_flag:
-            #print(bc)
             if (REG_CL_SENTENCE.search(bc)
                     or REG_OPCL_SENTENCE.search(bc)
                     or REG_BOUTEN_CL.search(bc)
@@ -95,7 +93,6 @@ def convert_basecode(basecode: list[str]) -> list[str]:
                     basecode[ind] = '\t'
                 else:
                     basecode[ind] = ''
-    #print(basecode)
     return connect_serial_nontag([i for i in basecode if i])
 
 def replace_rubies(ruby_type: RubyType, template: tuple[str, str, str, str, str, str], code: str):
@@ -140,13 +137,10 @@ def replace_tabchar(template, code: str) -> str:
 def replace_ruby(base: list[str], template: tuple) -> list[str]:
     joined = "".join(base)
     haspipe_proc = replace_rubies(RubyType.HASPIPE, template, joined)
-    #print(f"result: \t{result}\n")
     nonpipe_proc = replace_rubies(RubyType.NONPIPE, template, haspipe_proc)
     bouten_proc = replace_rubies(RubyType.BOUTEN, template, nonpipe_proc)
     tab_proc = replace_tabchar(template, bouten_proc)
-    #print(f"result2: \t{result2}\n")
     keep_proc = tab_proc.replace(r'|《', '《')
-    #tab_proc = keep_proc.replace('\t', f'{template[4]}<w:r><w:tab/></w:r>{template[3]}')
     return keep_proc
 
 def make_new_xml(ruby_font: str, em_style: str, code: str) -> str:
