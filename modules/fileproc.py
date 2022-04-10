@@ -5,7 +5,7 @@ import zipfile
 import shutil
 from pathlib import Path
 from dataclasses import dataclass
-from . import txt2docx as t2d
+from modules.txt2docx import make_new_xml
 
 
 @dataclass
@@ -45,7 +45,7 @@ class FileProc:
         with open(document, mode='r', encoding='utf-8') as f:
             s = f.read()
 
-        new_code = t2d.make_new_xml(self.ruby_font, self.em_style, s)
+        new_code = make_new_xml(self.ruby_font, self.em_style, s)
 
         with open(document, mode='w', encoding='utf-8') as f:
             f.write(new_code)
@@ -59,7 +59,8 @@ class FileProc:
                 zf.write(filepath)
                 os.remove(filepath)
         if platform.system() == 'Darwin':
-            subprocess.run(f'zip --delete {self.output.name} "*__MACOSX*" "*.DS_Store"')
+            subprocess.run(
+                f'zip --delete {self.output.name} "*__MACOSX*" "*.DS_Store"')
 
     def _delete_tempdir(self, extract_dir: str, dirs: set[str]):
         for dd in dirs:
@@ -68,8 +69,8 @@ class FileProc:
 
     def process(self):
         self.files, self.dirs, self.docxml = self._extract(
-                self.inputfile.as_posix(),
-                self.extract_dir.as_posix())
+            self.inputfile.as_posix(),
+            self.extract_dir.as_posix())
         self._from_read_to_write(self.docxml.as_posix())
         self._make_docx(self.files)
         self._delete_tempdir(self.extract_dir.as_posix(), self.dirs)

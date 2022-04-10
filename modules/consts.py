@@ -5,9 +5,11 @@ from typing import NamedTuple
 import platform
 import regex
 
+
 class EmType(Enum):
     DOT = 'dot'
     COMMA = 'comma'
+
 
 class TemplateType(NamedTuple):
     ruby_open:    str
@@ -17,6 +19,7 @@ class TemplateType(NamedTuple):
     general_open: str
     general_end:  str
     bouten_open:  str
+
 
 @dataclass
 class Template:
@@ -62,7 +65,7 @@ class Template:
             # ここにルビ文字列（例：ふりがな）
             (r'</w:t>',
              r'</w:r>',
-             r'</w:rt>'), # 1 close
+             r'</w:rt>'),  # 1 close
             (r'<w:rubyBase>',
              r'<w:r w:rsidR="00E95970">',
              r'<w:rPr>',
@@ -83,13 +86,14 @@ class Template:
              rf'<w:em w:val="{self.emtype}"/>',
              r'</w:rPr><w:t>')))  # 6 close
         return TemplateType(
-                    ruby_open=tmp[0],
-                    ruby_end=tmp[1],
-                    oyamoji_open=tmp[2],
-                    oyamoji_end=tmp[3],
-                    general_open=tmp[4],
-                    general_end=tmp[5],
-                    bouten_open=tmp[6])
+            ruby_open=tmp[0],
+            ruby_end=tmp[1],
+            oyamoji_open=tmp[2],
+            oyamoji_end=tmp[3],
+            general_open=tmp[4],
+            general_end=tmp[5],
+            bouten_open=tmp[6])
+
 
 # タグ単体（開始or終了）にマッチするパターン
 REG_TAG = regex.compile(r'<[^<>]*>')
