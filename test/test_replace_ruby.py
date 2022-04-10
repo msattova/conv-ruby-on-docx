@@ -11,7 +11,7 @@ from test.cases_replace_ruby import (testcode, idealcode,
                                     testcode7, idealcode7)
 
 def test_replace_ruby():
-    template = con.make_template()
+    template = con.Template(font='', emtype='').template
     return_code = t2d.replace_ruby(testcode, template)
     return_code2 = t2d.replace_ruby(testcode2, template)
     return_code3 = t2d.replace_ruby(testcode3, template)
