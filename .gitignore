@@ -142,3 +142,4 @@ archive/
 main_gui.build/
 main_gui.dist/
 main_gui.onefile-build/
+.vscode/
