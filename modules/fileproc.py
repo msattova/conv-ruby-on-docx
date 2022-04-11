@@ -22,14 +22,14 @@ class FileProc:
         self.inputfile = self.inputfile.resolve()
         self.output = self.output.resolve()
 
-        self.extract_dir = self.output.parent
+        self.extract_dir: Path = self.output.parent
 
     def _extract(self, inputfile: str,
                  extract_dir: str) -> tuple[list[str], set[str], Path]:
         with zipfile.ZipFile(inputfile) as zf:
             files = zf.namelist()
-            dirs = set()
-            docxml: str
+            dirs: set[str] = set()
+            #docxml: str
             # print(self.__files)
             for f in files:
                 d = os.path.dirname(f)
@@ -38,7 +38,7 @@ class FileProc:
             # print(self.__dirs)
             os.chdir(extract_dir)
             zf.extractall(extract_dir)
-            docxml = tuple(Path(extract_dir).glob('word/document*.xml'))[0]
+            docxml = tuple(self.extract_dir.glob('word/document*.xml'))[0]
         return (files, dirs, docxml)
 
     def _from_read_to_write(self, document: str):
