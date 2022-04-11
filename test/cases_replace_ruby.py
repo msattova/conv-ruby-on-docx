@@ -366,7 +366,7 @@ testcode7 = '''
 </w:t>
 </w:r>
 </w:p>
-'''
+'''.splitlines()
 
 idealcode7 = f'''
 <w:p w14:paraId="1A318B7D" w14:textId="6C78F7B3" w:rsidR="00EE3670" w:rsidRDefault="00EE3670" w:rsidP="00EE3670">
