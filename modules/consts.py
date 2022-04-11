@@ -33,7 +33,8 @@ class Template:
             self.emtype = EmType.DOT.value
         self.template = self.make_template()
 
-    def division_font(self) -> str:
+    @staticmethod
+    def division_font() -> str:
         pf = platform.system()
         match pf:
             case 'Windows':

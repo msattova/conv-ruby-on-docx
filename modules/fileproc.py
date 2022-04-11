@@ -1,7 +1,7 @@
 import os
 import platform
 import subprocess
-import zipfile
+from zipfile import ZipFile, ZIP_STORED
 import shutil
 from pathlib import Path
 from dataclasses import dataclass
@@ -24,13 +24,11 @@ class FileProc:
 
         self.extract_dir: Path = self.output.parent
 
-    def _extract(self, inputfile: str,
-                 extract_dir: str) -> tuple[list[str], set[str], Path]:
-        with zipfile.ZipFile(inputfile) as zf:
+    def _extract(self, inputfile: Path,
+                 extract_dir: Path) -> tuple[list[str], set[str], Path]:
+        with ZipFile(inputfile) as zf:
             files = zf.namelist()
             dirs: set[str] = set()
-            #docxml: str
-            # print(self.__files)
             for f in files:
                 d = os.path.dirname(f)
                 dirs.add(d)
@@ -38,22 +36,22 @@ class FileProc:
             # print(self.__dirs)
             os.chdir(extract_dir)
             zf.extractall(extract_dir)
-            docxml = tuple(self.extract_dir.glob('word/document*.xml'))[0]
+            docxml = tuple(extract_dir.glob('word/document*.xml'))[0]
         return (files, dirs, docxml)
 
-    def _from_read_to_write(self, document: str):
-        with open(document, mode='r', encoding='utf-8') as f:
+    def _from_read_to_write(self, document: Path):
+        with document.open(mode='r', encoding='utf-8') as f:
             s = f.read()
 
         new_code = make_new_xml(self.ruby_font, self.em_style, s)
 
-        with open(document, mode='w', encoding='utf-8') as f:
+        with document.open(mode='w', encoding='utf-8') as f:
             f.write(new_code)
 
     def _make_docx(self, file_list: list[str]):
-        with zipfile.ZipFile(self.output.name, 'w',
-                             compression=zipfile.ZIP_STORED,
-                             compresslevel=0) as zf:
+        with ZipFile(self.output.name, 'w',
+                     compression=ZIP_STORED,
+                     compresslevel=0) as zf:
             for f in file_list:
                 filepath = os.path.join('.', f)
                 zf.write(filepath)
@@ -68,9 +66,7 @@ class FileProc:
                 shutil.rmtree(os.path.join(extract_dir, dd))
 
     def process(self):
-        self.files, self.dirs, self.docxml = self._extract(
-            self.inputfile.as_posix(),
-            self.extract_dir.as_posix())
-        self._from_read_to_write(self.docxml.as_posix())
-        self._make_docx(self.files)
-        self._delete_tempdir(self.extract_dir.as_posix(), self.dirs)
+        files, dirs, docxml = self._extract(self.inputfile, self.extract_dir)
+        self._from_read_to_write(docxml)
+        self._make_docx(files)
+        self._delete_tempdir(self.extract_dir.as_posix(), dirs)
