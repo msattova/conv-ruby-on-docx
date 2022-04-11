@@ -1,4 +1,5 @@
 
+from tqdm import tqdm
 from enum import Enum, auto
 from modules.consts import (Template,
                             TemplateType,
@@ -24,14 +25,18 @@ class RubyType(Enum):
 def connect_serial_nontag(code: list[str]) -> list[str]:
     ref_code = tuple(i for i in code if i)
     tagmatch = REG_TAG.match
+    bar = tqdm(total=len(ref_code), desc="connect tag", leave=False)
     for i, c in enumerate(ref_code):
         if len(code) <= (i+1):
+            bar.update(1)
             break
         if not code[i]:
+            bar.update(1)
             continue
         elif not (tagmatch(c) or tagmatch(ref_code[i+1])):
             code[i] = f"{code[i]}{code[i+1]}"
             code[i+1] = ""
+        bar.update(1)
     return [i for i in code if i]
 
 
@@ -47,13 +52,17 @@ def code_to_list(code: str) -> list[str]:
 
 
 def isolate(ruby_type: RubyType, code: list[str], opening: str, closing: str) -> list[str]:
+    desc_message: str
     match ruby_type:
         case RubyType.NONPIPE:
             pattern = REG_KANJI_AND_RUBY_AROUND
+            desc_message = "ruby without pipe"
         case RubyType.HASPIPE:
             pattern = REG_PIPE_OYAMOJI_GET_AROUND
+            desc_message = "ruby with pipe"
         case RubyType.BOUTEN:
             pattern = REG_BOUTEN_GET
+            desc_message = "bouten"
         case _:
             return []
     psub = pattern.sub
@@ -62,21 +71,26 @@ def isolate(ruby_type: RubyType, code: list[str], opening: str, closing: str) ->
     kanjimatch = REG_KANJI_AND_RUBY_AROUND.match
     ref_code = tuple(i for i in code)
     tmp_code = [i for i in code]
+    bar = tqdm(total=len(ref_code), desc=desc_message, leave=False)
     for i, c in enumerate(ref_code):
         if tagmatch(c):
+            bar.update(1)
             continue
         if ruby_type is RubyType.NONPIPE and oyamatch(c):
+            bar.update(1)
             continue
         elif ruby_type is RubyType.HASPIPE and kanjimatch(c):
+            bar.update(1)
             continue
         tmp_code[i] = psub(rf'{closing}{opening}\1{closing}{opening}', c)
+        bar.update(1)
     return code_to_list(filter_void_tag("".join(tmp_code), opening, closing))
 
 
 def isolate_rubysets(code: list[str], opening: str, closing: str) -> list[str]:
-    new_code = isolate(RubyType.HASPIPE, code, opening, closing)
-    new_code = isolate(RubyType.NONPIPE, new_code, opening, closing)
-    new_code = isolate(RubyType.BOUTEN, new_code, opening, closing)
+    new_code = code
+    for type in tqdm(RubyType, desc="isolate", leave=False):
+        new_code = isolate(type, code, opening, closing)
     return new_code
 
 
@@ -84,6 +98,7 @@ def convert_basecode(basecode: list[str]) -> list[str]:
     ruby_flag = False
     ref_code = tuple(i for i in basecode)
     tagmatch = REG_TAG.match
+    bar = tqdm(total=len(ref_code), desc="convert code", leave=False)
     for ind, bc in enumerate(ref_code):
         if (REG_PIPE.search(bc)
                 or REG_OP_SENTENCE.search(bc)
@@ -97,6 +112,7 @@ def convert_basecode(basecode: list[str]) -> list[str]:
                 ruby_flag = False
             elif tagmatch(bc):
                 basecode[ind] = '\t' if (bc == '<w:tab/>') else ''
+        bar.update(1)
     return connect_serial_nontag([i for i in basecode if i])
 
 
@@ -104,29 +120,37 @@ def replace_rubies(
         ruby_type: RubyType,
         template: TemplateType,
         code: str) -> str:
+    desc_message: str
     match ruby_type:
         case RubyType.NONPIPE:
+            desc_message = "ruby without pipe"
             pattern = REG_KANJI_AND_RUBY
         case RubyType.HASPIPE:
+            desc_message = "ruby with pipe"
             pattern = REG_PIPE_OYAMOJI_RUBY
         case RubyType.BOUTEN:
+            desc_message = "bouten"
             pattern = REG_BOUTEN_GET_INSIDE
         case _:
             return ''
     psub = pattern.sub
     tmp_code = code_to_list(code)
     ref_code = tuple(i for i in tmp_code)
+    bar = tqdm(total=len(ref_code), desc=desc_message, leave=False)
     for i, c in enumerate(ref_code):
         if REG_TAG.match(c) or (not c):
+            bar.update(1)
             continue
         if ruby_type is RubyType.BOUTEN:
             tmp_code[i] = psub(
                 rf"{template.general_end}{template.bouten_open}\1{template.general_end}{template.general_open}",
                 c)
+            bar.update(1)
             continue
         tmp_code[i] = psub(
             rf"{template.general_end}{template.ruby_open}\2{template.ruby_end}{template.oyamoji_open}\1{template.oyamoji_end}{template.general_open}",
             c)
+        bar.update(1)
     return filter_void_tag("".join(tmp_code), template.general_open, template.general_end)
 
 
@@ -137,29 +161,30 @@ def replace_tabchar(template: TemplateType, code: str) -> str:
     tagmatch = REG_TAG.match
     karajoin = "".join
     tmp_code = code_to_list(code)
+    bar = tqdm(total=len(tmp_code), desc="replace tab", leave=False)
     for i, c in enumerate(tmp_code):
         if tagmatch(c):
             if c == '</w:r>' or c == '</w:t>':
                 just_before_tags = []
+                bar.update(1)
                 continue
             just_before_tags.append(c)
         if '\t' in c:
             tmp_code[i] = c.replace(
                 '\t',
                 f'{template.general_end}<w:r><w:tab/></w:r>{karajoin(just_before_tags)}')
+        bar.update(1)
     return filter_void_tag(karajoin(tmp_code), template.general_open, template.general_end)
 
 
 def replace_ruby(
         base: list[str],
         template: TemplateType) -> str:
-    joined = "".join(base)
-    haspipe_proc = replace_rubies(RubyType.HASPIPE, template, joined)
-    nonpipe_proc = replace_rubies(RubyType.NONPIPE, template, haspipe_proc)
-    bouten_proc = replace_rubies(RubyType.BOUTEN, template, nonpipe_proc)
-    tab_proc = replace_tabchar(template, bouten_proc)
-    keep_proc = tab_proc.replace(r'|《', '《')
-    return keep_proc
+    ret_str = "".join(base)
+    for type in tqdm(RubyType, desc="replace", leave=False):
+        ret_str = replace_rubies(type, template, ret_str)
+    ret_str = replace_tabchar(template, ret_str)
+    return ret_str.replace(r'|《', '《')
 
 
 def make_new_xml(ruby_font: str, emtype: str, code: str) -> str:
