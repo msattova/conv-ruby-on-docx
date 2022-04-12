@@ -26,16 +26,14 @@ def connect_serial_nontag(code: list[str]) -> list[str]:
     ref_code = tuple(i for i in code if i)
     tagmatch = REG_TAG.match
     bar = tqdm(total=len(ref_code), desc="connect tag", leave=False)
-    for i, c in enumerate(ref_code):
+    for i, c in (ir := iter(enumerate(ref_code))):
         if len(code) <= (i+1):
             bar.update(1)
             break
-        if not code[i]:
-            bar.update(1)
-            continue
-        elif not (tagmatch(c) or tagmatch(ref_code[i+1])):
-            code[i] = f"{code[i]}{code[i+1]}"
-            code[i+1] = ""
+        if not (tagmatch(c) or tagmatch(ref_code[i+1])):
+            i2, c2 = next(ir)
+            code[i] = f'{c}{c2}'
+            code[i2] = ""
         bar.update(1)
     return [i for i in code if i]
 
@@ -90,7 +88,7 @@ def isolate(ruby_type: RubyType, code: list[str], opening: str, closing: str) ->
 def isolate_rubysets(code: list[str], opening: str, closing: str) -> list[str]:
     new_code = code
     for type in tqdm(RubyType, desc="isolate", leave=False):
-        new_code = isolate(type, code, opening, closing)
+        new_code = isolate(type, new_code, opening, closing)
     return new_code
 
 
@@ -112,9 +110,9 @@ def convert_basecode(basecode: list[str]) -> list[str]:
                 ruby_flag = False
             elif tagmatch(bc):
                 basecode[ind] = '\t' if (bc == '<w:tab/>') else ''
+        #print(bc)
         bar.update(1)
     return connect_serial_nontag([i for i in basecode if i])
-
 
 def replace_rubies(
         ruby_type: RubyType,
@@ -143,13 +141,17 @@ def replace_rubies(
             continue
         if ruby_type is RubyType.BOUTEN:
             tmp_code[i] = psub(
-                rf"{template.general_end}{template.bouten_open}\1{template.general_end}{template.general_open}",
+                rf'{template.general_end}'
+                rf'{template.bouten_open}\1{template.general_end}'
+                rf'{template.general_open}',
                 c)
-            bar.update(1)
-            continue
-        tmp_code[i] = psub(
-            rf"{template.general_end}{template.ruby_open}\2{template.ruby_end}{template.oyamoji_open}\1{template.oyamoji_end}{template.general_open}",
-            c)
+        else:
+            tmp_code[i] = psub(
+                rf'{template.general_end}'
+                rf'{template.ruby_open}\2{template.ruby_end}'
+                rf'{template.oyamoji_open}\1{template.oyamoji_end}'
+                rf'{template.general_open}',
+                c)
         bar.update(1)
     return filter_void_tag("".join(tmp_code), template.general_open, template.general_end)
 
@@ -172,7 +174,9 @@ def replace_tabchar(template: TemplateType, code: str) -> str:
         if '\t' in c:
             tmp_code[i] = c.replace(
                 '\t',
-                f'{template.general_end}<w:r><w:tab/></w:r>{karajoin(just_before_tags)}')
+                f'{template.general_end}'
+                r'<w:r><w:tab/></w:r>'
+                f'{karajoin(just_before_tags)}')
         bar.update(1)
     return filter_void_tag(karajoin(tmp_code), template.general_open, template.general_end)
 

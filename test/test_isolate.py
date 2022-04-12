@@ -11,15 +11,15 @@ from test.cases_isolate import (testcode, idealcode,
                                 testcode7, idealcode7,
                                 testcode8, idealcode8)
 
+template = con.Template(font='', emtype='').template
+
 def test_isolate():
-    template = con.Template(font='', emtype='').template
     returncode = t2d.isolate(t2d.RubyType.NONPIPE, testcode2, template.general_open, template.general_end)
     assert ''.join(returncode) == ''.join(idealcode2)
 
 
-def test_isolate_rubyset():
-    template = con.Template(font='', emtype='').template
-    return_code = t2d.isolate_rubysets(testcode, template.general_open, template.general_end)
+def test_isolate_rubysets():
+    return_code  = t2d.isolate_rubysets(testcode,  template.general_open, template.general_end)
     return_code2 = t2d.isolate_rubysets(testcode2, template.general_open, template.general_end)
     return_code3 = t2d.isolate_rubysets(testcode3, template.general_open, template.general_end)
     return_code4 = t2d.isolate_rubysets(testcode4, template.general_open, template.general_end)
@@ -28,7 +28,7 @@ def test_isolate_rubyset():
     return_code7 = t2d.isolate_rubysets(testcode7, template.general_open, template.general_end)
     return_code8 = t2d.isolate_rubysets(testcode8, template.general_open, template.general_end)
 
-    assert "".join(return_code) == "".join(idealcode)
+    assert "".join(return_code)  == "".join(idealcode)
     assert "".join(return_code2) == "".join(idealcode2)
     assert "".join(return_code3) == "".join(idealcode3)
     assert "".join(return_code4) == "".join(idealcode4)
