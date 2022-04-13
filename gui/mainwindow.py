@@ -1,4 +1,5 @@
 
+import os
 from pathlib import Path
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtWidgets import (QWidget,
@@ -11,15 +12,18 @@ from PySide6.QtWidgets import (QWidget,
                                QHBoxLayout,
                                QFileDialog)
 
-
-import modules.fileproc as fpc
+from modules.fileproc import FileProc
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        with open('./style/style.qss', mode='r', encoding='utf-8') as f:
-            style = f.read()
+        stylefile = './style/style.qss'
+        if os.path.isfile(stylefile):
+            with open(stylefile, mode='r', encoding='utf-8') as f:
+                style = f.read()
+        else:
+            from gui.style import style
 
         self.setWindowTitle('カクヨム記法のルビをWordのルビにする')
         self.setFixedSize(QSize(500, 200))  # ウインドウサイズ
@@ -88,6 +92,6 @@ class MainWindow(QMainWindow):
         em_style = 'dot'
         #output = 'out.docx'
         output = Path(self.save_file())
-        p = fpc.FileProc(template, input, output, ruby_font, em_style)
+        p = FileProc(template, input, output, ruby_font, em_style)
         p.process()
         QMessageBox.information(None, "成功", "実行に成功しました！")
