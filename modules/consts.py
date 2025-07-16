@@ -23,8 +23,9 @@ class TemplateType(NamedTuple):
 
 @dataclass
 class Template:
-    font:   str
-    emtype: str
+    font:      str
+    rubysize:  int
+    emtype:    str
 
     def __post_init__(self):
         if not self.font:
@@ -32,6 +33,7 @@ class Template:
         if self.emtype not in set(i.value for i in EmType):
             self.emtype = EmType.DOT.value
         self.template = self.make_template()
+        self.rubysize *= 2 #Word上のルビサイズの表示はxmlファイル内で指定された数値の1/2になるようなので
 
     @staticmethod
     def division_font() -> str:
@@ -51,7 +53,7 @@ class Template:
         tmp = tuple(''.join(s) for s in (
             (r'<w:r>', r'<w:ruby>', r'<w:rubyPr>',
              r'<w:rubyAlign w:val="distributeSpace"/>',
-             r'<w:hps w:val="10"/>',
+             rf'<w:hps w:val="{self.rubysize}"/>',
              r'<w:hpsRaise w:val="18"/>',
              r'<w:hpsBaseText w:val="21"/>',
              r'<w:lid w:val="ja-JP"/>',
@@ -60,7 +62,7 @@ class Template:
              r'<w:r w:rsidR="00E95970" w:rsidRPr="00E95970">',
              r'<w:rPr>',
              rf'<w:rFonts w:ascii="{self.font}" w:eastAsia="{self.font}" w:hAnsi="{self.font}" w:hint="eastAsia"/>',
-             r'<w:sz w:val="10"/>',
+             rf'<w:sz w:val="{self.rubysize}"/>',
              r'</w:rPr>',
              r'<w:t>'),  # 0 close
             # ここにルビ文字列（例：ふりがな）

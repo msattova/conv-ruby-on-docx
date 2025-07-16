@@ -15,6 +15,7 @@ class FileProc:
     inputfile: Path
     output: Path
     ruby_font: str
+    ruby_size: int
     em_style: str
 
     def __post_init__(self):
@@ -43,7 +44,7 @@ class FileProc:
         with document.open(mode='r', encoding='utf-8') as f:
             s = f.read()
 
-        new_code = make_new_xml(self.ruby_font, self.em_style, s)
+        new_code = make_new_xml(self.ruby_font, self.ruby_size, self.em_style, s)
 
         with document.open(mode='w', encoding='utf-8') as f:
             f.write(new_code)

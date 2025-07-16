@@ -191,9 +191,9 @@ def replace_ruby(
     return ret_str.replace(r'|《', '《')
 
 
-def make_new_xml(ruby_font: str, emtype: str, code: str) -> str:
+def make_new_xml(ruby_font: str, ruby_size: int, emtype: str, code: str) -> str:
     """out.docx内のdocument.xmlに書き込む文字列生成"""
-    template = Template(font=ruby_font, emtype=emtype).template
+    template = Template(font=ruby_font, rubysize=ruby_size, emtype=emtype).template
     basecode = code_to_list(code)  # xmlを一行づつ分割
     each_lines = convert_basecode(basecode)
     each_lines = isolate_rubysets(

@@ -89,9 +89,10 @@ class MainWindow(QMainWindow):
         input = Path(self.input_path.text())
         template = Path('')
         ruby_font = ''
+        ruby_size = 5
         em_style = 'dot'
         #output = 'out.docx'
         output = Path(self.save_file())
-        p = FileProc(template, input, output, ruby_font, em_style)
+        p = FileProc(template, input, output, ruby_font, ruby_size, em_style)
         p.process()
         QMessageBox.information(None, "成功", "実行に成功しました！")

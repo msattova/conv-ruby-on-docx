@@ -14,6 +14,10 @@ class CmdArg:
                                  nargs='?', type=str,
                                  default='',
                                  help='ルビのフォント')
+        self.parser.add_argument('-s', '--size',
+                                 nargs='?', type=int,
+                                 default=5,
+                                 help='ルビのサイズ')
         self.parser.add_argument('-e', '--em',
                                  nargs='?', type=str,
                                  default='dot',
